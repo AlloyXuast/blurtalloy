@@ -1,3 +1,5 @@
+import React from 'react';
+
 const regex = {
     // eslint-disable-next-line no-useless-escape
     sanitize: /^https:\/\/3speak\.tv\/embed\?v=([A-Za-z0-9_\-\/]+)(&.*)?$/,
