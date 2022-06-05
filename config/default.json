@@ -41,6 +41,7 @@
     "conveyor_posting_wif": false,
     "conveyor_username": false,
     "special_posts_url": "https://raw.githubusercontent.com/balvinder294/blurtlatam-pinned/main/pinned-posts.json",
+    "dapps_url": "https://gitlab.com/blurt/openblurt/condenser-pinned/-/raw/master/dapps.json",
     "wallet_url": "https://wallet.blurt.one",
     "gpt_banned_tags": ["nsfw", "tante"],
     "google_ad_enabled": true,

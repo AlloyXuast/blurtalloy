@@ -183,7 +183,7 @@ const SidePanel = ({
             {
                 value: 'about',
                 label: tt('navigation.about'),
-                link: '/about.html',
+                link: 'https://blurt.one/about.html',
                 internal: true,
             },
         ],
