@@ -869,8 +869,8 @@ class Voting extends Component {
                                 )
                             </h3>
                             <hr />
-                            <div>
-                                <ul style={{height: '220px', overflowY: 'scroll'}}>
+                            <div className="voters-list">
+                                <ul>
                                     {voters.map((voter, i) => {
                                         return (
                                             <li style={{ listStyleType: 'none' }} key={i}>
