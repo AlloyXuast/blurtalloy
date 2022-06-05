@@ -86,7 +86,10 @@ export function embedNode(child, links /* images */) {
 export function genIframeMd(idx, id, width, height) {
     const url = `https://soundcloud.com/${id}`;
 
+    // eslint-disable-next-line global-require
     const soundCloudEmbed = require('react-soundcloud-embedded');
+
+    if(!soundCloudEmbed) return null;
 
     const ReactSoundCloud = soundCloudEmbed.default;
     return (

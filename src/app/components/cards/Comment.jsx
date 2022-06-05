@@ -335,8 +335,8 @@ class CommentImpl extends Component {
                     <Voting post={post} />
                     <span
                         style={{
-                            'border-right': '1px solid #eee',
-                            'padding-right': '1rem',
+                            borderRight: '1px solid #eee',
+                            paddingRight: '1rem',
                         }}
                     >
                         <b style={{ color: '#F2652D' }}>

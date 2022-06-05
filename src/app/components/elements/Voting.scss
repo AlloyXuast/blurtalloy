@@ -469,3 +469,58 @@ a.confirm_weight:hover {
 #btn_group button:focus {
     outline: none;
 }
+
+.reveal {
+    // box-shadow: 2px 2px 2px 0 rgba(0, 0, 0, 0.1), 7px 7px 0 0 $color-orange;
+    border-radius: 0;
+    width: 350px;
+    height: 300px;
+    border: transparent;
+    transition: 0.2s all ease-in-out;
+    @include themify($themes) {
+        background-color: themed('modalBackgroundColor');
+        color: themed('modalTextColorPrimary');
+    }
+    .button {
+        @extend .e-btn;
+        @extend .e-btn--black;
+        min-width: 100px;
+    }
+    h4 {
+        font-weight: bold;
+    }
+}
+
+@media only screen and (min-width: 10px) and (max-width: 425px) {
+    .reveal {
+        min-height: 50vh;
+        margin-left: 5vw;
+    }
+}
+
+@media only screen and (max-width: 40em) {
+    .reveal {
+        min-height: 50vh;
+        margin-left: 5vw;
+        margin-top: 5em;
+        margin-inline: auto;
+        max-width: 94%;
+    }
+}
+
+@media only screen and (min-width: 426px) and (max-width: 768px) {
+    .reveal {
+        min-height: 50vh;
+    }
+}
+
+@media print, screen and (min-width: 40em) {
+    .reveal {
+        min-height: 50vh;
+    }
+}
+
+.reveal > .close-button {
+    margin-top: 1rem;
+    font-size: 2rem;
+}

@@ -6,7 +6,6 @@ import { connect } from 'react-redux';
 import { immutableAccessor } from 'app/utils/Accessors';
 import extractContent from 'app/utils/ExtractContent';
 import Headroom from 'react-headroom';
-import Icon from 'app/components/elements/Icon';
 import resolveRoute from 'app/ResolveRoute';
 import tt from 'counterpart';
 import { APP_NAME } from 'app/client_config';
@@ -20,11 +19,9 @@ import Userpic from 'app/components/elements/Userpic';
 import { SIGNUP_URL } from 'shared/constants';
 import BlurtLogo from 'app/components/elements/BlurtLogo';
 import normalizeProfile from 'app/utils/NormalizeProfile';
-import Announcement from 'app/components/elements/Announcement';
-import GptAd from 'app/components/elements/GptAd';
 import { actions as fetchDataSagaActions } from 'app/redux/FetchDataSaga';
 import { startPolling } from 'app/redux/PollingSaga';
-import { List } from 'immutable';
+import { api } from '@blurtfoundation/blurtjs';
 
 class Header extends Component {
     static propTypes = {
@@ -45,6 +42,7 @@ class Header extends Component {
             gptAdRendered: false,
             showAd: false,
             showAnnouncement: this.props.showAnnouncement,
+            currentVotingPower: 100
         };
     }
 
@@ -56,6 +54,12 @@ class Header extends Component {
         } = this.props;
         if (loggedIn) {
             getAccountNotifications(current_account_name);
+            if(!this.powerUpdateInterval) this.setCurrentPower();
+            // Update power every 30 sec
+            this.powerUpdateInterval = setInterval(() => {
+                this.setCurrentPower();
+            }, 30000);
+
         }
     }
 
@@ -104,6 +108,7 @@ class Header extends Component {
         ) {
             return null;
         }
+        clearInterval(this.powerUpdateInterval);
     }
 
     gptAdRendered() {
@@ -121,6 +126,89 @@ class Header extends Component {
     hideAnnouncement() {
         this.setState({ showAnnouncement: false });
         this.props.hideAnnouncement();
+    }
+
+    setCurrentPower = () => {
+        const { username } = this.props;
+        if (username) {
+            api.getAccounts([username], (err, response) => {
+                const accountUpdated = response[0];
+                localStorage.setItem('updated-account', JSON.stringify(accountUpdated));
+
+                if (accountUpdated) {
+                    const updatedVotingPower = this.calculateVotingPower(accountUpdated).toFixed();
+                    localStorage.setItem('current-voting-power', updatedVotingPower);
+                    this.setState({ currentVotingPower: updatedVotingPower })
+                }
+            });
+        }
+    }
+
+    calculateVotingPower = (current_account) => {
+        const { BLURT_VOTING_MANA_REGENERATION_SECONDS } = this.props;
+
+        console.log('Blurt voting ma', BLURT_VOTING_MANA_REGENERATION_SECONDS);
+
+        let voting_manabar = null;
+        if (!voting_manabar) {
+            voting_manabar = current_account
+                ? current_account.voting_manabar
+                : 0;
+        }
+
+        const current_mana = parseInt(
+            voting_manabar ? voting_manabar.current_mana : 0
+        );
+
+        const last_update_time = voting_manabar
+            ? voting_manabar.last_update_time
+            : 0;
+
+        let vesting_shares = 0.0;
+        if (!vesting_shares) {
+            vesting_shares = current_account
+                ? Number(current_account.vesting_shares.split(' ')[0])
+                : 0.0;
+        }
+
+        let delegated_vesting_shares = 0.0;
+        if (!delegated_vesting_shares) {
+            delegated_vesting_shares = current_account
+                ? Number(current_account.delegated_vesting_shares.split(' ')[0])
+                : 0.0;
+        }
+
+        let vesting_withdraw_rate = 0.0;
+        if (!vesting_withdraw_rate) {
+            vesting_withdraw_rate = current_account
+                ? current_account.vesting_withdraw_rate
+                    ? current_account.vesting_withdraw_rate.split(' ')[0]
+                    : 0.0
+                : 0.0;
+        }
+
+        let received_vesting_shares = 0.0;
+        if (!received_vesting_shares) {
+            received_vesting_shares = current_account
+                ? Number(current_account.received_vesting_shares.split(' ')[0])
+                : 0.0;
+        }
+
+        const net_vesting_shares =
+            vesting_shares - delegated_vesting_shares + received_vesting_shares;
+
+        const maxMana =
+            (net_vesting_shares - Number(vesting_withdraw_rate)) * 1000000;
+
+        const now = Math.round(Date.now() / 1000);
+        const elapsed = now - last_update_time;
+        const regenerated_mana = (elapsed * maxMana) / BLURT_VOTING_MANA_REGENERATION_SECONDS;
+        let currentMana = current_mana;
+        currentMana += regenerated_mana;
+        if (currentMana >= maxMana) {
+            currentMana = maxMana;
+        }
+        return ((currentMana * 100) / maxMana);
     }
 
     render() {
@@ -145,7 +233,7 @@ class Header extends Component {
             notifications,
         } = this.props;
 
-        let { showAd, showAnnouncement } = this.state;
+        let { showAd, showAnnouncement, currentVotingPower } = this.state;
         let lastSeenTimestamp = 0;
         let unreadNotificationCount = 0;
         if (
@@ -310,6 +398,10 @@ class Header extends Component {
                 ? ` (${unreadNotificationCount})`
                 : '');
         const user_menu = [
+            {
+                icon: 'chevron-up-circle',
+                value: `Voting Power : ${currentVotingPower}%`
+            },
             {
                 link: feed_link,
                 icon: 'home',
@@ -479,6 +571,10 @@ const mapStateToProps = (state, ownProps) => {
 
     const userPath = state.routing.locationBeforeTransitions.pathname;
     const username = state.user.getIn(['current', 'username']);
+    const BLURT_VOTING_MANA_REGENERATION_SECONDS = state.global.getIn([
+        'blurt_config',
+        'BLURT_VOTING_MANA_REGENERATION_SECONDS',
+    ]);
 
     const notifications = state.global.getIn([
         'unread_notifications',
@@ -504,6 +600,7 @@ const mapStateToProps = (state, ownProps) => {
         walletUrl,
         content,
         notifications,
+        BLURT_VOTING_MANA_REGENERATION_SECONDS,
         ...ownProps,
     };
 };
