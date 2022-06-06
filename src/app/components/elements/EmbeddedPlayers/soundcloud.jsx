@@ -86,12 +86,24 @@ export function embedNode(child, links /* images */) {
 export function genIframeMd(idx, id, width, height) {
     const url = `https://soundcloud.com/${id}`;
 
-    // eslint-disable-next-line global-require
-    const soundCloudEmbed = require('react-soundcloud-embedded');
+    const iframeUrl = "https://w.soundcloud.com/player/?url="
+        + url
+        + '&amp;color=ff5500'
+        + '&amp;auto_play=false'
+        + '&amp;hide_related=true'
+        + '&amp;show_reposts=false'
+        + '&amp;show_user=true'
+        + '&amp;show_comments=false';
 
-    if(!soundCloudEmbed) return null;
+    const iframeProps = {
+        src: iframeUrl,
+        width,
+        height: '166px',
+        frameBorder: '0',
+        scrolling: 'no',
+        allowFullScreen: false
+    }
 
-    const ReactSoundCloud = soundCloudEmbed.default;
     return (
         <div
             key={`soundcloud-${id}-${idx}`}
@@ -102,11 +114,9 @@ export function genIframeMd(idx, id, width, height) {
                 paddingBottom: '2%',
             }}
         >
-            <ReactSoundCloud
-                height="166px"
-                visual={false}
-                showComments={false}
-                url={url}
+            <iframe
+                title="Soundcloud Embedded Player"
+                {...iframeProps}
             />
         </div>
     );

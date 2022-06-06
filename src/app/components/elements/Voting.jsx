@@ -21,7 +21,7 @@ import {
 import DropdownMenu from 'app/components/elements/DropdownMenu';
 import TimeAgoWrapper from 'app/components/elements/TimeAgoWrapper';
 import Dropdown from 'app/components/elements/Dropdown';
-import Reveal from './Reveal'
+import VotersListReveal from './VotersLIstReveal';
 
 const MAX_VOTES_DISPLAY = 150;
 const VOTE_WEIGHT_DROPDOWN_THRESHOLD = 50; //if BP is more than 50, enable the slider
@@ -861,7 +861,7 @@ class Voting extends Component {
                         <Icon name="dropdown-arrow" />
                     </a>
                     {showVotersListModal === true && (
-                        <Reveal style={{width: '350px !important'}} show onHide={this.handleVotersListModalHide}>
+                        <VotersListReveal style={{ width: '350px !important' }} show onHide={this.handleVotersListModalHide}>
                             <CloseButton onClick={this.handleVotersListModalHide} />
                             <h3 style={{ 'text-align': 'center' }}>
                                 Voters (
@@ -887,7 +887,7 @@ class Voting extends Component {
                                     </button>
                                 </div>
                             </div>
-                        </Reveal>
+                        </VotersListReveal>
                     )}
                 </span>
             );

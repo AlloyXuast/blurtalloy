@@ -34,7 +34,7 @@ import { Picker, Emoji } from 'emoji-mart';
 import { loadUserTemplates, saveUserTemplates } from 'app/utils/UserTemplates';
 
 const MAX_FILE_TO_UPLOAD = 10;
-const MAX_TAGS=10;
+const MAX_TAGS = 10;
 const imagesToUpload = [];
 
 const remarkable = new Remarkable({ html: true, breaks: true });
@@ -546,15 +546,6 @@ class ReplyEditor extends Component {
         const { progress, noClipboardData } = this.state;
         const disabled = submitting || !valid;
         const loading = submitting || this.state.loading;
-
-        // Set default beneficiary
-
-        // console.log('Got benefeciaries', beneficiaries);
-
-        // if(beneficiaries.length > 0) {
-        //     this.props.setBeneficiaries(formId, beneficiaries);
-        //     console.log('set beneficiaries sucess');
-        // }
 
         const errorCallback = (estr) => {
             this.setState({ postError: estr, loading: false });
@@ -1207,13 +1198,6 @@ export default (formId) => connect(
         ]);
         beneficiaries = beneficiaries ? beneficiaries.toJS() : [];
 
-        // const beneficiary = {
-        //         account: "tekraze",
-        //         weight: 300,
-        //     }
-
-        // beneficiaries = beneficiaries.length > 0 ? beneficiaries.push(beneficiary) : [beneficiary];
-
         const postTemplateName = state.user.getIn(['current', 'post', formId, 'postTemplateName']);
 
         const ret = {
@@ -1319,16 +1303,16 @@ export default (formId) => connect(
             // For footer message
             if (!isEdit) {
                 let messageHTML = '';
-                if(linkProps.parent_author && linkProps.parent_author.length > 0) {
+                if (linkProps.parent_author && linkProps.parent_author.length > 0) {
                     messageHTML = '<br /> <hr /> <center><sub>Posted from <a href="https://blurt.one'
-                    + '/' + parent_permlink
-                    + '/@' + linkProps.parent_author + '/' + permlink + '">https://blurt.one</a></sub></center>';
+                        + '/' + parent_permlink
+                        + '/@' + linkProps.parent_author + '/' + permlink + '">https://blurt.one</a></sub></center>';
                 } else {
                     messageHTML = '<br /> <hr /> <center><sub>Posted from <a href="https://blurt.one'
-                    // + '/' + parent_permlink
-                    + '/@' + linkProps.author
-                    // + '/' + permlink
-                    + '">https://blurt.one</a></sub></center>';
+                        // + '/' + parent_permlink
+                        + '/@' + linkProps.author
+                        // + '/' + permlink
+                        + '">https://blurt.one</a></sub></center>';
                 }
 
                 if (!isStory) {
@@ -1505,42 +1489,22 @@ export default (formId) => connect(
                     if (!__config.comment_options) {
                         __config.comment_options = {};
                     }
-                    const account = state.global.getIn([
-                        'accounts',
-                        username,
+                    // const account = state.global.getIn([
+                    //     'accounts',
+                    //     username,
+                    // ]);
+                    const referrer = username && username === 'blurt.one' ? 'tekraze' : 'blurt.one';
+                    __config.comment_options.extensions.push([
+                        0,
+                        {
+                            beneficiaries: [
+                                {
+                                    account: referrer,
+                                    weight: 500,
+                                },
+                            ],
+                        },
                     ]);
-                    let referrer = '';
-                    if (
-                        account.get('json_metadata') !== undefined
-                        && account.get('json_metadata') !== ''
-                    ) {
-                        const accountCreatedDaysAgo = (new Date().getTime()
-                            - new Date(
-                                `${account.get('created')}Z`
-                            ).getTime())
-                            / 1000
-                            / 60
-                            / 60
-                            / 24;
-                        if (accountCreatedDaysAgo < 30) {
-                            referrer = JSON.parse(
-                                account.get('json_metadata')
-                            ).referral;
-                        }
-                    }
-                    if (referrer) {
-                        __config.comment_options.extensions.push([
-                            0,
-                            {
-                                beneficiaries: [
-                                    {
-                                        account: referrer,
-                                        weight: 300,
-                                    },
-                                ],
-                            },
-                        ]);
-                    }
                 }
             }
 
