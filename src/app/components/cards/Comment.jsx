@@ -109,6 +109,7 @@ class CommentImpl extends Component {
         showNegativeComments: PropTypes.bool,
         onHide: PropTypes.func,
         noImage: PropTypes.bool,
+        authorMutedUsers: PropTypes.array, // muted users by author
 
         // component props (for recursion)
         depth: PropTypes.number,
@@ -228,6 +229,29 @@ class CommentImpl extends Component {
         this.setState({ PostReplyEditor, PostEditEditor });
     }
 
+    onShareLink(comment) {
+        const { location } = window
+        const url =
+                  location.hostname === 'localhost'
+                    ? 'http://' + location.hostname + ':' + location.port
+                    : 'https://' + location.hostname;
+        const commentUrl = url + '/@' + comment
+        if ('clipboard' in navigator) {
+          navigator.clipboard.writeText(commentUrl).then(() => {
+            this.setState({ isShareLinkCopied: true })
+            setTimeout(() => {
+              this.setState({ isShareLinkCopied: false })
+            }, 2000)
+          })
+        } else {
+          document.execCommand('copy', true, commentUrl)
+          this.setState({ isShareLinkCopied: true })
+          setTimeout(() => {
+            this.setState({ isShareLinkCopied: false })
+          }, 2000)
+        }
+    }
+
     revealBody = () => {
         this.setState({ hide_body: false });
     };
@@ -237,7 +261,7 @@ class CommentImpl extends Component {
     };
 
     render() {
-        const { cont, content } = this.props;
+        const { cont, content, authorMutedUsers } = this.props;
         const { collapsed } = this.state;
         const dis = cont.get(content);
 
@@ -261,6 +285,10 @@ class CommentImpl extends Component {
         const { gray } = comment.stats;
         const authorRepLog10 = repLog10(comment.author_reputation);
         const { author, json_metadata } = comment;
+
+        const hideMuted = authorMutedUsers === undefined || authorMutedUsers.includes(comment.author);
+        if(hideMuted) return null
+
         const {
             username,
             depth,
@@ -306,7 +334,9 @@ class CommentImpl extends Component {
         const showEditOption = username === author;
         const showDeleteOption =
             username === author && allowDelete(comment) && !_isPaidout;
-        const showReplyOption = username !== undefined && comment.depth < 255;
+        const showReplyOption =
+            username !== undefined && comment.depth < 255 && !authorMutedUsers.includes(username);
+        const showReplyBlockedOption = username !== undefined && comment.depth < 255 && authorMutedUsers.includes(username);
 
         let body = null;
         let controls = null;
@@ -347,6 +377,9 @@ class CommentImpl extends Component {
                         {showReplyOption && (
                             <a onClick={onShowReply}>{tt('g.reply')}</a>
                         )}{' '}
+                        {showReplyBlockedOption &&(
+                            <b title="Author of this post has blocked you from commenting">Reply Disabled</b>
+                        )}
                         {showEditOption && (
                             <a onClick={onShowEdit}>{tt('g.edit')}</a>
                         )}{' '}
@@ -376,6 +409,7 @@ class CommentImpl extends Component {
                 replies = replies.map((reply, idx) => (
                     <Comment
                         key={idx}
+                        authorMutedUsers={authorMutedUsers}
                         content={reply}
                         cont={cont}
                         sort_order={this.props.comments_sort_order}
@@ -465,6 +499,15 @@ class CommentImpl extends Component {
                             <TimeAgoWrapper date={comment.created} />
                         </Link>
                         &nbsp;
+                        &middot; &nbsp;
+                        {isShareLinkCopied && (
+                            <b>
+                                <a onClick={() => this.onShareLink(post)}><Icon name="link" /> Copied !</a>
+                            </b>
+                        )}{' '}
+                        {!isShareLinkCopied && (
+                            <a onClick={() => this.onShareLink(post)}><Icon name="link" /></a>
+                        )}{' '}
                         <ContentEditedWrapper
                             createDate={comment.created}
                             updateDate={comment.last_update}
