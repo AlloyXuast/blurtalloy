@@ -20,6 +20,7 @@ import { Long } from 'bytebuffer';
 import { allowDelete } from 'app/utils/StateFunctions';
 import ImageUserBlockList from 'app/utils/ImageUserBlockList';
 import ContentEditedWrapper from '../elements/ContentEditedWrapper';
+import Icon from '../elements/Icon';
 
 // returns true if the comment has a 'hide' flag AND has no descendants w/ positive payout
 function hideSubtree(cont, c) {
@@ -123,7 +124,7 @@ class CommentImpl extends Component {
 
     constructor() {
         super();
-        this.state = { collapsed: false, hide_body: false, highlight: false };
+        this.state = { collapsed: false, hide_body: false, highlight: false, isShareLinkCopied: false};
         this.shouldComponentUpdate = shouldComponentUpdate(this, 'Comment');
         this.onShowReply = () => {
             const { showReply } = this.state;
@@ -262,7 +263,7 @@ class CommentImpl extends Component {
 
     render() {
         const { cont, content, authorMutedUsers } = this.props;
-        const { collapsed } = this.state;
+        const { collapsed, isShareLinkCopied } = this.state;
         const dis = cont.get(content);
 
         if (!dis) {

@@ -18,6 +18,7 @@ import GptAd from 'app/components/elements/GptAd';
 import { isLoggedIn } from 'app/utils/UserUtil';
 import AdSense from 'react-adsense';
 import Icon from 'app/components/elements/Icon';
+import { api } from '@blurtfoundation/blurtjs';
 
 class Post extends Component {
     static propTypes = {
