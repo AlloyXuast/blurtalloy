@@ -610,13 +610,12 @@ class Voting extends Component {
                     />
                     {currentVp ? (
                         <div className="voting-power-display">
-                            {tt('voting_jsx.vote_value')}:{' '}
-                            {voteValue.toFixed(3)} BLURT
-                            <br />
-                            {tt('voting_jsx.voting_power')}:{' '}
-                            {currentVp.toFixed(2)}%
-                            <br />
-                            {tt('g.transaction_fee')}: {fee} BLURT
+                            {/* {tt('voting_jsx.vote_value')}:{' '} */}
+                            <b title="Worth of your Vote">VW</b> : {voteValue.toFixed(3)} BLURT &nbsp;|&nbsp;
+                            {/* {tt('voting_jsx.voting_power')}:{' '} */}
+                            <b title="your Voting power to vote">VP</b>: {currentVp.toFixed(2)}% &nbsp;|&nbsp;
+                            {/* {tt('g.transaction_fee')} */}
+                            <b title="Transaction Fee for casting your vote">Fee</b>: {fee} BLURT
                         </div>
                     ) : (
                         ''

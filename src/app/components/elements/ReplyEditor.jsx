@@ -123,6 +123,12 @@ class ReplyEditor extends Component {
                     ? stateFromHtml(this.props.richTextEditor, raw)
                     : null,
             });
+
+            let beneficiaries = [];
+            beneficiaries.push({username: 'blurt.one', percent: parseInt(5).toFixed(0)})
+            beneficiaries = [...new Set(beneficiaries)];
+            // this.props.setBeneficiaries(formId, []);
+            this.props.setBeneficiaries(formId, beneficiaries);
         }
     }
 
@@ -1493,18 +1499,18 @@ export default (formId) => connect(
                     //     'accounts',
                     //     username,
                     // ]);
-                    const referrer = username && username === 'blurt.one' ? 'tekraze' : 'blurt.one';
-                    __config.comment_options.extensions.push([
-                        0,
-                        {
-                            beneficiaries: [
-                                {
-                                    account: referrer,
-                                    weight: 500,
-                                },
-                            ],
-                        },
-                    ]);
+                    // const referrer = username && username === 'blurt.one' ? 'tekraze' : 'blurt.one';
+                    // __config.comment_options.extensions.push([
+                    //     0,
+                    //     {
+                    //         beneficiaries: [
+                    //             {
+                    //                 account: referrer,
+                    //                 weight: 500,
+                    //             },
+                    //         ],
+                    //     },
+                    // ]);
                 }
             }
 

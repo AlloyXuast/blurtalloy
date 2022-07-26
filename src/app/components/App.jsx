@@ -32,6 +32,11 @@ class App extends Component {
         this.props.loginUser();
     }
 
+    // loadCMPScript() {
+    //     const script = document.createElement('script');
+    //     script
+    // }
+
     UNSAFE_componentWillReceiveProps(nextProps) {
         const { nightmodeEnabled } = nextProps;
         this.toggleBodyNightmode(nightmodeEnabled);

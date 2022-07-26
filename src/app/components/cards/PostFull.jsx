@@ -91,6 +91,7 @@ class PostFull extends Component {
         deletePost: PropTypes.func.isRequired,
         showPromotePost: PropTypes.func.isRequired,
         showExplorePost: PropTypes.func.isRequired,
+        authorMutedUsers: PropTypes.array,
     };
 
     constructor() {
@@ -261,6 +262,7 @@ class PostFull extends Component {
             onShowEdit,
             onDeletePost,
         } = this;
+        const {authorMutedUsers} = this.props;
         const post_content = this.props.cont.get(this.props.post);
         if (!post_content) return null;
         const p = extractContent(immutableAccessor, post_content);
@@ -415,7 +417,10 @@ class PostFull extends Component {
         const showPromote = false;
         //username && !_isPaidout && post_content.get('depth') == 0;
         const showReplyOption =
-            username !== undefined && post_content.get('depth') < 255;
+            username !== undefined && post_content.get('depth') < 255 && authorMutedUsers !== undefined 
+                && !authorMutedUsers.includes(username);
+        const showReplyBlockedOption = username !== undefined && post_content.get('depth') < 255 && authorMutedUsers !== undefined 
+                && authorMutedUsers.includes(username);
         const showEditOption = username === author;
         const showDeleteOption =
             username === author && allowDelete(post_content) && !_isPaidout;
@@ -502,6 +507,9 @@ class PostFull extends Component {
                             {showReplyOption && (
                                 <a onClick={onShowReply}>{tt('g.reply')}</a>
                             )}{' '}
+                            {showReplyBlockedOption &&(
+                                <b title="Author of this post has blocked you from commenting">Reply Disabled</b>
+                            )}
                             {showEditOption && !showEdit && (
                                 <a onClick={onShowEdit}>{tt('g.edit')}</a>
                             )}{' '}

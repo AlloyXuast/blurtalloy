@@ -289,7 +289,7 @@ export function validateIframeUrl(url) {
         const provider = supportedProviders[pi];
         const validUrl = provider.validateIframeUrlFn(url);
 
-        if (validUrl !== false) {
+        if (validUrl === true) {
             console.log(`Found a valid ${provider.id} iframe URL`);
             return {
                 providerId: provider.id,
