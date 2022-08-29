@@ -136,7 +136,7 @@ export class BeneficiarySelector extends Component {
                                     onChange={this.handleBeneficiaryPercentChange(
                                         idx
                                     )}
-                                    disabled={beneficiary.username === 'blurt.one'}
+                                    disabled={beneficiary.username === 'alloyxuast'}
                                     className="BeneficiarySelector__percentbox"
                                 />
                                 <span className="BeneficiarySelector__percentrow">
@@ -147,7 +147,7 @@ export class BeneficiarySelector extends Component {
                         <div className="column small-5">
                             <div className="input-group">
                                 <span className="input-group-label">@</span>
-                                {beneficiary.username !== 'blurt.one' ? (
+                                {beneficiary.username !== 'alloyxuast' ? (
                                     <Autocomplete
                                         wrapperStyle={{
                                         display: 'inline-block',
@@ -186,7 +186,7 @@ export class BeneficiarySelector extends Component {
                                         onChange={this.handleBeneficiaryUserChange(
                                         idx
                                     )}
-                                        disabled={beneficiary.username === 'blurt.one'}
+                                        disabled={beneficiary.username === 'alloyxuast'}
                                         onSelect={this.handleBeneficiaryUserSelect(
                                         idx
                                     )}
@@ -201,7 +201,7 @@ export class BeneficiarySelector extends Component {
                                 )}
                             </div>
                         </div>
-                        {beneficiary.username !== 'blurt.one' ? (
+                        {beneficiary.username !== 'alloyxuast' ? (
                             <div className="BeneficiarySelector__percentrow column small-5">
                                 <a
                                     id="remove"
@@ -211,7 +211,7 @@ export class BeneficiarySelector extends Component {
                                     {tt('g.remove')}
                                 </a>
                             </div>
-                        ):<b>Default Beneficiary for Blurt.ONE frontend</b>}
+                        ):<b>Default Beneficiary for AlloyXuast frontend</b>}
                     </div>
                 ))}
                 <div className="row">
