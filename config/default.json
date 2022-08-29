@@ -1,8 +1,8 @@
 {
-    "facebook_app_id": "793237358168604",
-    "google_analytics_id": "UA-179023138-1",
+    "facebook_app_id": false,
+    "google_analytics_id": "G-36BEYLLK6N",
     "img_proxy_prefix": "https://imgp.blurt.world/",
-    "ipfs_prefix": false,
+    "ipfs_prefix": "https://ipfs1.alloyxuast.tk/ipfs/",
     "notify": {
         "gcm_key": "google secret key"
     },
@@ -16,10 +16,10 @@
         "key": "SG.xxx_yyyy",
         "templates": {}
     },
-    "server_session_secret": "HusUOYIruoK1yeYR/4QRuybQZP1UpkNaRkegTEN9u8w=",
+    "server_session_secret": "aG4swRtnrOqf/OHdna3kl4+Q3X6jLKufuYaGMYw9eoc=",
     "session_cookie_key": "blurt-dev",
     "session_key": "blurt_session_key",
-    "site_domain": "blurt.one",
+    "site_domain": "blurt.alloyxuast.tk",
     "telesign": {
         "customer_id": false,
         "rest_api_key": false
@@ -29,7 +29,15 @@
         "auth_token": false
     },
     "price_info_url": "https://api.blurt.world/price_info",
-    "coal_url": "https://coal.blurt.one/",
+    "coal_url": "https://coal.blurtwallet.com/",
+    "nsfw_url": "https://gitlab.com/blurt/openblurt/coal/-/raw/master/nsfw.json",
+    "phishing_url": "https://gitlab.com/blurt/openblurt/coal/-/raw/master/phishing-domain.json",
+    "phishing_domains": [
+        "peypaisecurity.com",
+        "kinrnightx.monster",
+        "jarolovexr.click",
+        "najirchat.cfd"
+    ],
     "upload_image": "https://images.blurt.blog",
     "blurtd_connection_client": "https://rpc.blurt.one",
     "blurtd_connection_server": "https://rpc.blurt.one",
@@ -41,8 +49,7 @@
     "conveyor_posting_wif": false,
     "conveyor_username": false,
     "special_posts_url": "https://raw.githubusercontent.com/balvinder294/blurtlatam-pinned/main/pinned-posts.json",
-    "dapps_url": "https://gitlab.com/blurt/openblurt/condenser-pinned/-/raw/master/dapps.json",
-    "wallet_url": "https://wallet.blurt.one",
+    "wallet_url": "https://blurtwallet.alloyxuast.tk",
     "gpt_banned_tags": ["nsfw", "tante"],
     "google_ad_enabled": true,
     "google_ad_test": false,
