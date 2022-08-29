@@ -75,7 +75,7 @@ export async function getStateAsync(url) {
             raw.blacklist = map;
         });
 
-    const promotedMembersListURL = 'https://raw.githubusercontent.com/balvinder294/blurtlatam-pinned/main/verified.json';
+    const promotedMembersListURL = 'https://raw.githubusercontent.com/AlloyXuast/alloyxuast_member_lists/main/blurtmembers/verified.json';
 
     await axios
         .get(promotedMembersListURL, {
@@ -92,9 +92,7 @@ export async function getStateAsync(url) {
             }
         })
         .catch((error) => {
-            const map = new Map();
             console.warn(error);
-            raw.promoted_members = map;
         });
 
     const rewardFund = await getRewardFund();
