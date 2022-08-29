@@ -125,7 +125,7 @@ class ReplyEditor extends Component {
             });
 
             let beneficiaries = [];
-            beneficiaries.push({username: 'blurt.one', percent: parseInt(5).toFixed(0)})
+            beneficiaries.push({username: 'alloyxuast', percent: parseInt(5).toFixed(0)})
             beneficiaries = [...new Set(beneficiaries)];
             // this.props.setBeneficiaries(formId, []);
             this.props.setBeneficiaries(formId, beneficiaries);
@@ -1310,15 +1310,15 @@ export default (formId) => connect(
             if (!isEdit) {
                 let messageHTML = '';
                 if (linkProps.parent_author && linkProps.parent_author.length > 0) {
-                    messageHTML = '<br /> <hr /> <center><sub>Posted from <a href="https://blurt.one'
+                    messageHTML = '<br /> <hr /> <center><sub>Posted from <a href="https://blurt.alloyxuast.tk'
                         + '/' + parent_permlink
-                        + '/@' + linkProps.parent_author + '/' + permlink + '">https://blurt.one</a></sub></center>';
+                        + '/@' + linkProps.parent_author + '/' + permlink + '">https://blurt.alloyxuast.tk</a></sub></center>';
                 } else {
-                    messageHTML = '<br /> <hr /> <center><sub>Posted from <a href="https://blurt.one'
+                    messageHTML = '<br /> <hr /> <center><sub>Posted from <a href="https://blurt.alloyxuast.tk'
                         // + '/' + parent_permlink
                         + '/@' + linkProps.author
                         // + '/' + permlink
-                        + '">https://blurt.one</a></sub></center>';
+                        + '">https://blurt.alloyxuast.tk</a></sub></center>';
                 }
 
                 if (!isStory) {
@@ -1399,7 +1399,7 @@ export default (formId) => connect(
             if (rtags.links.size) meta.links = Array.from(rtags.links);
             else delete meta.links;
 
-            meta.app = 'blurt.one/0.1';
+            meta.app = 'AlloyXuast/0.1';
             if (isStory) {
                 meta.format = isHtml ? 'html' : 'markdown';
                 if (summary) {
@@ -1495,22 +1495,6 @@ export default (formId) => connect(
                     if (!__config.comment_options) {
                         __config.comment_options = {};
                     }
-                    // const account = state.global.getIn([
-                    //     'accounts',
-                    //     username,
-                    // ]);
-                    // const referrer = username && username === 'blurt.one' ? 'tekraze' : 'blurt.one';
-                    // __config.comment_options.extensions.push([
-                    //     0,
-                    //     {
-                    //         beneficiaries: [
-                    //             {
-                    //                 account: referrer,
-                    //                 weight: 500,
-                    //             },
-                    //         ],
-                    //     },
-                    // ]);
                 }
             }
 
