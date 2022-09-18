@@ -2,7 +2,7 @@
     "facebook_app_id": false,
     "google_analytics_id": "G-36BEYLLK6N",
     "img_proxy_prefix": "https://imgp.blurt.world/",
-    "ipfs_prefix": "https://ipfs1.alloyxuast.tk/ipfs/",
+    "ipfs_prefix": "https://ipfs.alloyxuast.co.uk/ipfs/",
     "notify": {
         "gcm_key": "google secret key"
     },
@@ -19,7 +19,7 @@
     "server_session_secret": "aG4swRtnrOqf/OHdna3kl4+Q3X6jLKufuYaGMYw9eoc=",
     "session_cookie_key": "blurt-dev",
     "session_key": "blurt_session_key",
-    "site_domain": "blurt.alloyxuast.tk",
+    "site_domain": "blurt.alloyxuast.co.uk",
     "telesign": {
         "customer_id": false,
         "rest_api_key": false
@@ -49,7 +49,7 @@
     "conveyor_posting_wif": false,
     "conveyor_username": false,
     "special_posts_url": "https://raw.githubusercontent.com/balvinder294/blurtlatam-pinned/main/pinned-posts.json",
-    "wallet_url": "https://blurtwallet.alloyxuast.tk",
+    "wallet_url": "https://blurtwallet.alloyxuast.co.uk",
     "gpt_banned_tags": ["nsfw", "tante"],
     "google_ad_enabled": true,
     "google_ad_test": false,
