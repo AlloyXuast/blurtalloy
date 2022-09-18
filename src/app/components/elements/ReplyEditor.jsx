@@ -1310,15 +1310,15 @@ export default (formId) => connect(
             if (!isEdit) {
                 let messageHTML = '';
                 if (linkProps.parent_author && linkProps.parent_author.length > 0) {
-                    messageHTML = '<br /> <hr /> <center><sub>Posted from <a href="https://blurt.alloyxuast.tk'
+                    messageHTML = '<br /> <hr /> <center><sub>Posted from <a href="https://blurt.alloyxuast.co.uk'
                         + '/' + parent_permlink
-                        + '/@' + linkProps.parent_author + '/' + permlink + '">https://blurt.alloyxuast.tk</a></sub></center>';
+                        + '/@' + linkProps.parent_author + '/' + permlink + '">https://blurt.alloyxuast.co.uk</a></sub></center>';
                 } else {
-                    messageHTML = '<br /> <hr /> <center><sub>Posted from <a href="https://blurt.alloyxuast.tk'
+                    messageHTML = '<br /> <hr /> <center><sub>Posted from <a href="https://blurt.alloyxuast.co.uk'
                         // + '/' + parent_permlink
                         + '/@' + linkProps.author
                         // + '/' + permlink
-                        + '">https://blurt.alloyxuast.tk</a></sub></center>';
+                        + '">https://blurt.alloyxuast.co.uk</a></sub></center>';
                 }
 
                 if (!isStory) {
