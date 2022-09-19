@@ -45,4 +45,4 @@ export const SITE_DESCRIPTION = 'Blurt is a social media platform where everyone
 
 // various
 export const SUPPORT_EMAIL = 'info@blurt.foundation';
-export const RECOMMENDED_FOLLOW_ACCOUNT = 'blurt.one';
+export const RECOMMENDED_FOLLOW_ACCOUNT = 'alloyxuast';
