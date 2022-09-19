@@ -75,7 +75,7 @@ export async function getStateAsync(url) {
             raw.blacklist = map;
         });
 
-    const promotedMembersListURL = 'https://raw.githubusercontent.com/AlloyXuast/alloyxuast_member_lists/main/blurtmembers/verified.json';
+    const promotedMembersListURL = 'https://api.chisdealhd.co.uk/v2/crypto/api/blurt/ranks';
 
     await axios
         .get(promotedMembersListURL, {
