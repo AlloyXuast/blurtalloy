@@ -1,16 +1,19 @@
+import React from 'react';
 import { Link } from 'react-router';
 import { filterTags } from 'app/utils/StateFunctions';
 import DropdownMenu from 'app/components/elements/DropdownMenu';
 
 export default ({ post, horizontal, single }) => {
     let sort_order = 'hot';
-    if (process.env.BROWSER && window.last_sort_order) {
+    const sort_list = ['trending','hot','created','muted','payout'];
+    if (process.env.BROWSER && sort_list.indexOf(window.last_sort_order) !== -1) {
         sort_order = window.last_sort_order;
     }
 
     if (single) {
+        const name = (post.community_title) ? post.community_title : post.category
         return (
-            <Link to={`/${sort_order}/${post.category}`}>{post.category}</Link>
+            <Link to={`/${sort_order}/${post.category}`}>{!post.community_title && "# "}{name}</Link>
         );
     }
 

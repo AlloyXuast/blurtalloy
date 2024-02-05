@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import React from 'react';
 
 export const Announcement = ({ onClose }) => (
     <div className="annoucement-banner">

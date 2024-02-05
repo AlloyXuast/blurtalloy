@@ -1,16 +1,16 @@
-/* eslint-disable react/react-in-jsx-scope */
-import { Component } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+import ReactDOM from 'react-dom';
 import reactForm from 'app/utils/ReactForm';
 import { SUBMIT_FORM_ID } from 'shared/constants';
 import tt from 'counterpart';
 import { fromJS } from 'immutable';
 import { validateBeneficiaries } from 'app/components/cards/BeneficiarySelector';
 import BeneficiarySelector from 'app/components/cards/BeneficiarySelector';
-import PropTypes from 'prop-types';
-import * as userActions from 'app/redux/UserReducer';
-import { connect } from 'react-redux';
 import PostTemplateSelector from 'app/components/cards/PostTemplateSelector';
 import { loadUserTemplates, saveUserTemplates } from 'app/utils/UserTemplates';
+
+import * as userActions from 'app/redux/UserReducer';
 
 class PostAdvancedSettings extends Component {
     static propTypes = {
@@ -38,7 +38,8 @@ class PostAdvancedSettings extends Component {
                     beneficiaries: validateBeneficiaries(
                         props.username,
                         values.beneficiaries,
-                        false
+                        props.category,
+                        false,
                     ),
                 };
             },
@@ -63,11 +64,21 @@ class PostAdvancedSettings extends Component {
                 };
 
                 if (template.name === postTemplateName) {
-                    if (Object.prototype.hasOwnProperty.call(template, 'payoutType')) {
+                    if (
+                        Object.prototype.hasOwnProperty.call(
+                            template,
+                            'payoutType'
+                        )
+                    ) {
                         this.setState({ payoutType: template.payoutType });
                     }
 
-                    if (Object.prototype.hasOwnProperty.call(template, 'beneficiaries')) {
+                    if (
+                        Object.prototype.hasOwnProperty.call(
+                            template,
+                            'beneficiaries'
+                        )
+                    ) {
                         newBeneficiaries.props.value = template.beneficiaries;
                         this.setState({ beneficiaries: newBeneficiaries });
                     }
@@ -97,17 +108,20 @@ class PostAdvancedSettings extends Component {
     };
 
     render() {
-        const {
-            formId, username, defaultPayoutType, initialPayoutType
-        } = this.props;
+        const { formId, username, defaultPayoutType, initialPayoutType } =
+            this.props;
         const { beneficiaries, payoutType, postTemplateName } = this.state;
-        // eslint-disable-next-line react/destructuring-assignment
         const { submitting, valid, handleSubmit } = this.state.advancedSettings;
-        const disabled = submitting || !(
-            valid || payoutType !== initialPayoutType || postTemplateName !== null
-        );
+        const disabled =
+            submitting ||
+            !(
+                valid ||
+                payoutType !== initialPayoutType ||
+                postTemplateName != null
+            );
 
-        const loadingTemplate = postTemplateName && postTemplateName.indexOf('create_') === -1;
+        const loadingTemplate =
+            postTemplateName && postTemplateName.indexOf('create_') === -1;
         const userTemplates = loadUserTemplates(username);
 
         const form = (
@@ -122,7 +136,10 @@ class PostAdvancedSettings extends Component {
                         this.props.setPayoutType(formId, payoutType);
                         this.props.setBeneficiaries(formId, data.beneficiaries);
                         this.props.hideAdvancedSettings();
-                        this.props.setPostTemplateName(formId, postTemplateName);
+                        this.props.setPostTemplateName(
+                            formId,
+                            postTemplateName
+                        );
                     }
                 })}
             >
@@ -182,18 +199,17 @@ class PostAdvancedSettings extends Component {
                         {tt('beneficiary_selector_jsx.header')}
                     </h4>
                 </div>
-                <BeneficiarySelector {...beneficiaries.props} tabIndex={1} />
+                <BeneficiarySelector category={this.props.category} {...beneficiaries.props} tabIndex={1} />
                 <PostTemplateSelector
                     username={username}
                     onChange={this.handleTemplateSelected}
                     templates={userTemplates}
                 />
                 <div className="error">
-                    {(beneficiaries.touched || beneficiaries.value)
-                        && beneficiaries.error}
+                    {(beneficiaries.touched || beneficiaries.value) &&
+                        beneficiaries.error}
                     &nbsp;
                 </div>
-                <br />
                 <div className="row">
                     <div className="column">
                         <span>
@@ -203,7 +219,10 @@ class PostAdvancedSettings extends Component {
                                 disabled={disabled}
                                 tabIndex={2}
                             >
-                                {loadingTemplate && tt('post_advanced_settings_jsx.load_template')}
+                                {loadingTemplate &&
+                                    tt(
+                                        'post_advanced_settings_jsx.load_template'
+                                    )}
                                 {!loadingTemplate && tt('g.save')}
                             </button>
                             {loadingTemplate && (
@@ -212,12 +231,18 @@ class PostAdvancedSettings extends Component {
                                     className="button"
                                     tabIndex={0}
                                     onClick={(event) => {
-                                        this.handleDeleteTemplate(event, postTemplateName);
+                                        this.handleDeleteTemplate(
+                                            event,
+                                            postTemplateName
+                                        );
                                     }}
                                 >
-                                    {postTemplateName
-                                        && postTemplateName.indexOf('create_') === -1
-                                        && tt('post_advanced_settings_jsx.delete_template')}
+                                    {postTemplateName &&
+                                        postTemplateName.indexOf('create_') ===
+                                            -1 &&
+                                        tt(
+                                            'post_advanced_settings_jsx.delete_template'
+                                        )}
                                 </button>
                             )}
                         </span>
@@ -239,6 +264,8 @@ class PostAdvancedSettings extends Component {
     }
 }
 
+import { connect } from 'react-redux';
+
 export default connect(
     // mapStateToProps
     (state, ownProps) => {
@@ -252,6 +279,12 @@ export default connect(
             ],
             '100%'
         );
+        const category = state.user.getIn([
+            'current',
+            'post',
+            formId,
+            'category',
+        ]);
         const initialPayoutType = state.user.getIn([
             'current',
             'post',
@@ -267,6 +300,7 @@ export default connect(
         beneficiaries = beneficiaries ? beneficiaries.toJS() : [];
         return {
             ...ownProps,
+            category,
             fields: ['beneficiaries'],
             defaultPayoutType,
             initialPayoutType,
@@ -277,24 +311,30 @@ export default connect(
 
     // mapDispatchToProps
     (dispatch) => ({
-        hideAdvancedSettings: () => dispatch(userActions.hidePostAdvancedSettings()),
-        setPayoutType: (formId, payoutType) => dispatch(
-            userActions.set({
-                key: ['current', 'post', formId, 'payoutType'],
-                value: payoutType,
-            })
-        ),
-        setPostTemplateName: (formId, postTemplateName, create = false) => dispatch(
-            userActions.set({
-                key: ['current', 'post', formId, 'postTemplateName'],
-                value: create ? `create_${postTemplateName}` : postTemplateName,
-            })
-        ),
-        setBeneficiaries: (formId, beneficiaries) => dispatch(
-            userActions.set({
-                key: ['current', 'post', formId, 'beneficiaries'],
-                value: fromJS(beneficiaries),
-            })
-        ),
+        hideAdvancedSettings: () =>
+            dispatch(userActions.hidePostAdvancedSettings()),
+        setPayoutType: (formId, payoutType) =>
+            dispatch(
+                userActions.set({
+                    key: ['current', 'post', formId, 'payoutType'],
+                    value: payoutType,
+                })
+            ),
+        setPostTemplateName: (formId, postTemplateName, create = false) =>
+            dispatch(
+                userActions.set({
+                    key: ['current', 'post', formId, 'postTemplateName'],
+                    value: create
+                        ? `create_${postTemplateName}`
+                        : postTemplateName,
+                })
+            ),
+        setBeneficiaries: (formId, beneficiaries) =>
+            dispatch(
+                userActions.set({
+                    key: ['current', 'post', formId, 'beneficiaries'],
+                    value: fromJS(beneficiaries),
+                })
+            ),
     })
 )(PostAdvancedSettings);

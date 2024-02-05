@@ -4,11 +4,10 @@ jest.mock('./utils/GDPRUserList');
 describe('routeRegex', () => {
     it('should produce the desired regex patterns', () => {
         const test_cases = [
-            ['PostsIndex', /^\/(@[\w\.\d-]+)\/feed\/?$/],
-            ['UserProfile1', /^\/(@[\w\.\d-]+)\/?$/],
+            ['UserFeed', /^\/(@[\w.\d-]+)\/feed\/?$/],
             [
-                'UserProfile2',
-                /^\/(@[\w\.\d-]+)\/(blog|posts|comments|transfers|curation-rewards|author-rewards|permissions|created|recent-replies|notifications|feed|password|followed|followers|settings)\/?$/,
+                'UserProfile',
+                /^\/(@[\w.\d-]+)(?:\/(blog|posts|comments|transfers|curation-rewards|author-rewards|permissions|created|recent-replies|notifications|feed|password|followed|followers|settings|info|communities))?\/?$/,
             ],
             ['UserProfile3', /^\/(@[\w\.\d-]+)\/[\w\.\d-]+/],
             [
@@ -34,6 +33,9 @@ describe('routeRegex', () => {
 describe('resolveRoute', () => {
     const test_cases = [
         ['/', { page: 'PostsIndex', params: ['hot'] }],
+        ['/trending', { page: 'PostsIndex', params: ['trending', undefined] }],
+        ['/trending/cat', { page: 'PostsIndex', params: ['trending', 'cat'] }],
+        ['/trending/Dog', { page: 'PostsIndex', params: ['trending', 'Dog'] }],
         ['/about.html', { page: 'About' }],
         ['/dapps', { page: 'Dapps' }],
         ['/faq.html', { page: 'Faq' }],
@@ -42,14 +44,15 @@ describe('resolveRoute', () => {
         ['/support.html', { page: 'Support' }],
         ['/tos.html', { page: 'Tos' }],
         ['/submit.html', { page: 'SubmitPost' }],
-        [
-            '/@maitland/feed',
-            { page: 'PostsIndex', params: ['home', '@maitland'] },
-        ],
+        ['/@maitland/feed',{ page: 'PostsIndex', params: ['home', '@maitland'] },],
         ['/@gdpr/feed', { page: 'NotFound' }],
         [
             '/@maitland/blog',
             { page: 'UserProfile', params: ['@maitland', 'blog'] },
+        ],
+        [
+            '/@maitland/communities',
+            { page: 'UserProfile', params: ['@maitland', 'communities'] },
         ],
         ['/@gdpr/blog', { page: 'NotFound' }],
         [
@@ -62,6 +65,10 @@ describe('resolveRoute', () => {
             { page: 'Post', params: ['ceasar', '@salad', 'circa90', ''] },
         ],
         ['/taggy/@gdpr/nice345', { page: 'NotFound' }],
+        [
+            '/roles/blurt-1683810',
+            { page: 'CommunityRoles', params: ['blurt-1683810'] },
+        ],
     ];
     test_cases.forEach((r) => {
         it(`should resolve the route for the ${r[1].page} page`, () => {

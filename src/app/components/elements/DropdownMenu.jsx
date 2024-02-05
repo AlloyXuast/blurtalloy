@@ -1,16 +1,15 @@
-import { createElement, Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { browserHistory } from 'react-router';
 import Icon from 'app/components/elements/Icon';
-import { findParent } from 'app/utils/DomUtils';
 import VerticalMenu from './VerticalMenu';
+import { findParent } from 'app/utils/DomUtils';
 
-export default class DropdownMenu extends Component {
-    // eslint-disable-next-line react/static-property-placement
+export default class DropdownMenu extends React.Component {
     static propTypes = {
-        items: PropTypes.any.isRequired,
+        items: PropTypes.oneOfType([PropTypes.object.isRequired, PropTypes.array.isRequired]),
         selected: PropTypes.string,
-        children: PropTypes.any,
+        children: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
         className: PropTypes.string,
         title: PropTypes.string,
         href: PropTypes.string,
@@ -29,13 +28,16 @@ export default class DropdownMenu extends Component {
         document.removeEventListener('click', this.hide);
     }
 
-    getSelectedLabel = (items, selected) => {
-        const selectedEntry = items.find((i) => i.value === selected);
-        const selectedLabel =
-            selectedEntry && selectedEntry.label
-                ? selectedEntry.label
-                : selected;
-        return selectedLabel;
+    toggle = (e) => {
+        const { shown } = this.state;
+        if (shown) this.hide(e);
+        else this.show(e);
+    };
+
+    show = (e) => {
+        e.preventDefault();
+        this.setState({ shown: true });
+        document.addEventListener('click', this.hide);
     };
 
     hide = (e) => {
@@ -59,16 +61,13 @@ export default class DropdownMenu extends Component {
         browserHistory.push(a.pathname + a.search);
     };
 
-    show = (e) => {
-        e.preventDefault();
-        this.setState({ shown: true });
-        document.addEventListener('click', this.hide);
-    };
-
-    toggle = (e) => {
-        const { shown } = this.state;
-        if (shown) this.hide(e);
-        else this.show(e);
+    getSelectedLabel = (items, selected) => {
+        const selectedEntry = items.find((i) => i.value === selected);
+        const selectedLabel =
+            selectedEntry && selectedEntry.label
+                ? selectedEntry.label
+                : selected;
+        return selectedLabel;
     };
 
     render() {
@@ -112,6 +111,6 @@ export default class DropdownMenu extends Component {
             (this.state.shown ? ' show' : '') +
             (className ? ` ${className}` : '') +
             (position ? ` ${position}` : '');
-        return createElement(el, { className: cls }, [entry, menu]);
+        return React.createElement(el, { className: cls }, [entry, menu]);
     }
 }

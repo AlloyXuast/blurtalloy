@@ -15,6 +15,12 @@ const SET_COLLAPSED = 'global/SET_COLLAPSED';
 const RECEIVE_STATE = 'global/RECEIVE_STATE';
 const RECEIVE_ACCOUNT = 'global/RECEIVE_ACCOUNT';
 const RECEIVE_ACCOUNTS = 'global/RECEIVE_ACCOUNTS';
+const RECEIVE_POST_HEADER = 'global/RECEIVE_POST_HEADER';
+const RECEIVE_COMMUNITY = 'global/RECEIVE_COMMUNITY';
+const RECEIVE_COMMUNITIES = 'global/RECEIVE_COMMUNITIES';
+const LOADING_SUBSCRIPTIONS = 'global/LOADING_SUBSCRIPTIONS';
+const RECEIVE_SUBSCRIPTIONS = 'global/RECEIVE_SUBSCRIPTIONS';
+const NOTIFICATIONS_LOADING = 'global/NOTIFICATIONS_LOADING';
 const SYNC_SPECIAL_POSTS = 'global/SYNC_SPECIAL_POSTS';
 const RECEIVE_CONTENT = 'global/RECEIVE_CONTENT';
 const LINK_REPLY = 'global/LINK_REPLY';
@@ -84,43 +90,31 @@ export default function reducer(state = defaultState, action = {}) {
         }
 
         case RECEIVE_STATE: {
-            let new_state = fromJS(payload);
-            if (new_state.has('content')) {
-                const content = new_state.get('content').withMutations((c) => {
-                    c.forEach((cc, key) => {
-                        cc = emptyContentMap.mergeDeep(cc);
-                        const stats = fromJS(contentStats(cc));
-                        c.setIn([key, 'stats'], stats);
-                    });
-                });
-                new_state = new_state.set('content', content);
-            }
-            return state.mergeDeep(new_state);
+            console.log(
+                'Merging state',
+            );
+            return state.mergeDeep(fromJS(payload));
         }
         case RECEIVE_NOTIFICATIONS: {
+            console.log('Receive notifications', payload);
             // Need to figure out why two sets are not merged
-            return state.updateIn(['notifications', payload.name], Map(), (n) =>
+            return state.updateIn(['notifications', payload.name], Map(), n =>
                 n.withMutations((nmut) =>
                     nmut.update('notifications', List(), (a) =>
                         a.concat(fromJS(payload.notifications))
-                    )
+                    ).set('isLastPage', payload.isLastPage)
                 )
             );
         }
 
         case RECEIVE_UNREAD_NOTIFICATIONS: {
             console.log('Receive unread notifications', payload);
-            return state.updateIn(
-                ['unread_notifications', payload.name],
-                Map(),
-                (n) =>
-                    n.withMutations((nmut) =>
-                        nmut.update('unread_notifications', List(), (a) =>
-                            a.concat(fromJS(payload.notifications))
-                        )
-                    )
+            return state.setIn(
+                ['notifications', payload.name, 'unreadNotifications'],
+                Map(payload.unreadNotifications)
             );
         }
+
         case RECEIVE_ACCOUNT: {
             const account = transformAccount(payload.account);
             return mergeAccounts(state, account);
@@ -131,6 +125,40 @@ export default function reducer(state = defaultState, action = {}) {
                 const transformed = transformAccount(curr);
                 return mergeAccounts(acc, transformed);
             }, state);
+        }
+
+        case RECEIVE_POST_HEADER: {
+            return state.update('headers', Map(), a =>
+                a.mergeDeep(fromJS(payload))
+            );
+        }
+
+        case RECEIVE_COMMUNITIES: {
+            const map = Map(payload.map(c => [c.name, fromJS(c)]));
+            const idx = List(payload.map(c => c.name));
+
+            return state
+                .setIn(['community'], map)
+                .setIn(['community_idx'], idx);
+        }
+
+        case RECEIVE_COMMUNITY: {
+            return state.update('community', Map(), a => a.mergeDeep(payload));
+        }
+
+        case LOADING_SUBSCRIPTIONS: {
+            return state.setIn(['subscriptions', 'loading'], payload);
+        }
+
+        case RECEIVE_SUBSCRIPTIONS: {
+            return state.setIn(
+                ['subscriptions', payload.username],
+                fromJS(payload.subscriptions)
+            );
+        }
+
+        case NOTIFICATIONS_LOADING: {
+            return state.setIn(['notifications', 'loading'], payload);
         }
 
         // Interleave special posts into the map of posts.
@@ -151,13 +179,22 @@ export default function reducer(state = defaultState, action = {}) {
         case RECEIVE_CONTENT: {
             const content = fromJS(payload.content);
             const key = content.get('author') + '/' + content.get('permlink');
-            return state.updateIn(['content', key], Map(), (c) => {
+            console.log('received content...');
+            // merge content object into map
+            let new_state = state.updateIn(['content', key], Map(), c => {
                 c = emptyContentMap.mergeDeep(c);
                 c = c.delete('active_votes');
                 c = c.mergeDeep(content);
-                c = c.set('stats', fromJS(contentStats(c)));
                 return c;
             });
+            // set creation-pending key (optimistic UI update)
+            if (content.get('depth') == 0) {
+                const category = content.get('category');
+                const dkey = ['discussion_idx', category, '_created'];
+                new_state = new_state.setIn(dkey, key);
+            }
+
+            return new_state;
         }
 
         case LINK_REPLY: {
@@ -207,25 +244,16 @@ export default function reducer(state = defaultState, action = {}) {
         }
 
         case VOTED: {
+            // merge content object into map
             const { username, author, permlink, weight } = payload;
-            const key = ['content', author + '/' + permlink, 'active_votes'];
-            let active_votes = state.getIn(key, List());
-            const idx = active_votes.findIndex(
-                (v) => v.get('voter') === username
-            );
-            // steemd flips weight into percent
-            if (idx === -1) {
-                active_votes = active_votes.push(
-                    Map({ voter: username, percent: weight })
-                );
-            } else {
-                active_votes = active_votes.set(
-                    idx,
-                    Map({ voter: username, percent: weight })
-                );
-            }
-            state.setIn(key, active_votes);
-            return state;
+            const vote = Map({ voter: username, percent: weight });
+            const key = ['content', author + '/' + permlink, 'active_votes'];            
+            let new_state = state.updateIn(key, List(), active_votes => {
+                const idx = active_votes.findIndex(v => v.get('voter') === username);
+                active_votes = idx === -1 ? active_votes.push(vote) : active_votes.set(idx, vote);
+                return active_votes;
+            });
+            return new_state;
         }
 
         case FETCHING_DATA: {
@@ -240,55 +268,26 @@ export default function reducer(state = defaultState, action = {}) {
         }
 
         case RECEIVE_DATA: {
-            const {
-                data,
-                order,
-                category,
-                accountname,
-                fetching,
-                endOfData,
-            } = payload;
+            const { data, order, category, fetching, endOfData } = payload;
             let new_state;
 
-            // append incoming post keys to proper content list
-            if (
-                order === 'by_author' ||
-                order === 'by_feed' ||
-                order === 'by_comments' ||
-                order === 'by_replies'
-            ) {
-                // category is either "blog", "feed", "comments", or "recent_replies" (respectively) -- and all posts are keyed under current profile
-                const key = ['accounts', accountname, category];
-                new_state = state.updateIn(key, List(), (list) => {
-                    return list.withMutations((posts) => {
-                        data.forEach((value) => {
-                            const key = `${value.author}/${value.permlink}`;
-                            if (!posts.includes(key)) posts.push(key);
-                        });
+            // append content keys to `discussion_idx` list
+            const key = ['discussion_idx', category || '', order];
+            new_state = state.updateIn(key, List(), list => {
+                return list.withMutations(posts => {
+                    data.forEach(value => {
+                        const key = `${value.author}/${value.permlink}`;
+                        if (!posts.includes(key)) posts.push(key);
                     });
                 });
-            } else {
-                new_state = state.updateIn(
-                    ['discussion_idx', category || '', order],
-                    (list) => {
-                        return list.withMutations((posts) => {
-                            data.forEach((value) => {
-                                const key = `${value.author}/${value.permlink}`;
-                                if (!posts.includes(key)) posts.push(key);
-                            });
-                        });
-                    }
-                );
-            }
-
-            // append content stats data to each post
-            new_state = new_state.updateIn(['content'], (content) => {
-                return content.withMutations((map) => {
-                    data.forEach((value) => {
+            });
+            
+            // append content to `content` map
+            new_state = new_state.updateIn(['content'], content => {
+                return content.withMutations(map => {
+                    data.forEach(value => {
                         const key = `${value.author}/${value.permlink}`;
-                        value = fromJS(value);
-                        value = value.set('stats', fromJS(contentStats(value)));
-                        map.set(key, value);
+                        map.set(key, fromJS(value));
                     });
                 });
             });
@@ -369,6 +368,35 @@ export const receiveAccount = (payload) => ({
 
 export const receiveAccounts = (payload) => ({
     type: RECEIVE_ACCOUNTS,
+    payload,
+});
+
+export const receivePostHeader = payload => ({
+    type: RECEIVE_POST_HEADER,
+    payload,
+});
+
+export const receiveCommunities = payload => ({
+    type: RECEIVE_COMMUNITIES,
+    payload,
+});
+
+export const receiveCommunity = payload => ({
+    type: RECEIVE_COMMUNITY,
+    payload,
+});
+
+export const receiveSubscriptions = payload => ({
+    type: RECEIVE_SUBSCRIPTIONS,
+    payload,
+});
+export const loadingSubscriptions = payload => ({
+    type: LOADING_SUBSCRIPTIONS,
+    payload,
+});
+
+export const notificationsLoading = payload => ({
+    type: NOTIFICATIONS_LOADING,
     payload,
 });
 

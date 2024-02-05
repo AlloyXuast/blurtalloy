@@ -55,21 +55,31 @@ const SidePanel = ({
             {
                 value: 'welcome',
                 label: tt('navigation.welcome'),
-                link: 'https://blurtwallet.alloyxuast.co.uk/welcome',
+                link: `${walletUrl}/welcome`,
             },
             {
                 value: 'faq',
                 label: tt('navigation.faq'),
-                link: 'https://blurtwallet.alloyxuast.co.uk/faq.html',
+                link: `${walletUrl}/faq.html`,
             },
             {
-                value: 'tags',
-                label: tt('navigation.explore'),
+                value: 'all_posts',
+                label: tt('g.all_posts'),
+                link: '/',
+            },
+            {
+                value: 'trending_tags',
+                label: tt('g.trending_tags'),
                 link: '/tags',
             },
             {
+                value: 'explore_communities',
+                label: tt('g.explore_communities'),
+                link: '/communities',
+            },
+            {
                 value: 'dapps',
-                label: 'Dapps',
+                label: 'dApps',
                 link: '/dapps',
             },
             {
@@ -87,6 +97,11 @@ const SidePanel = ({
                 label: tt('navigation.vote_for_witnesses'),
                 link: `${walletUrl}/~witnesses`,
             },
+            {
+                value: 'vote_for_proposals',
+                label: tt('navigation.vote_for_proposals'),
+                link: `${walletUrl}/proposals`,
+            },
         ],
         exchanges: [
             {
@@ -101,18 +116,8 @@ const SidePanel = ({
             },
             {
                 value: 'robiniaswap',
-                label: 'Robinia Swap',
-                link: 'https://robiniaswap.com/',
-            },
-            {
-                value: 'beldex',
-                label: 'Beldex',
-                link: 'https://www.beldex.io/tradeAdvance?pair=BLURT_BTC',
-            },
-            {
-                value: 'stex',
-                label: 'Stex',
-                link: 'https://app.stex.com/en/trade/pair/BTC/BLURT/1D',
+                label: 'Robinia BLURT:BSC Bridge',
+                link: 'https://bridge.blokfield.io/',
             },
             {
                 value: 'hive-engine',
@@ -142,8 +147,8 @@ const SidePanel = ({
                 link: 'https://gitlab.com/blurt/blurt/',
             },
             {
-                value: 'chat',
-                label: tt('navigation.chat'),
+                value: 'discord',
+                label: tt('navigation.discord'),
                 link: 'https://discord.blurt.world/',
             },
         ],
@@ -183,7 +188,7 @@ const SidePanel = ({
             {
                 value: 'about',
                 label: tt('navigation.about'),
-                link: 'https://blurt.one/about.html',
+                link: `${walletUrl}/about.html`,
                 internal: true,
             },
         ],

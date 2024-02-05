@@ -1,4 +1,6 @@
-import { Component } from 'react';
+/* eslint-disable react/jsx-indent-props */
+/* eslint-disable react/jsx-indent */
+import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import * as userActions from 'app/redux/UserReducer';
@@ -7,6 +9,9 @@ import PostSummary from 'app/components/cards/PostSummary';
 import LoadingIndicator from 'app/components/elements/LoadingIndicator';
 import debounce from 'lodash.debounce';
 import { findParent } from 'app/utils/DomUtils';
+import {
+    parsePayoutAmount,
+} from 'app/utils/ParsersAndFormatters';
 
 import shouldComponentUpdate from 'app/utils/shouldComponentUpdate';
 
@@ -17,12 +22,7 @@ function topPosition(domElt) {
     return domElt.offsetTop + topPosition(domElt.offsetParent);
 }
 
-class PostsList extends Component {
-    static defaultProps = {
-        showSpam: false,
-        loading: false,
-    };
-
+class PostsList extends React.Component {
     static propTypes = {
         posts: PropTypes.object.isRequired,
         loading: PropTypes.bool.isRequired,
@@ -35,6 +35,11 @@ class PostsList extends Component {
         nsfwPref: PropTypes.string.isRequired,
     };
 
+    static defaultProps = {
+        showSpam: false,
+        loading: false,
+    };
+
     constructor() {
         super();
         this.state = {
@@ -42,6 +47,8 @@ class PostsList extends Component {
             showNegativeComments: false,
         };
         this.scrollListener = this.scrollListener.bind(this);
+        this.onBackButton = this.onBackButton.bind(this);
+        this.closeOnOutsideClick = this.closeOnOutsideClick.bind(this);
         this.shouldComponentUpdate = shouldComponentUpdate(this, 'PostsList');
     }
 
@@ -54,30 +61,19 @@ class PostsList extends Component {
         window.removeEventListener('popstate', this.onBackButton);
         window.removeEventListener('keydown', this.onBackButton);
         const post_overlay = document.getElementById('post_overlay');
-        if (post_overlay)
+        if (post_overlay) {
             post_overlay.removeEventListener('click', this.closeOnOutsideClick);
+        }
         document.getElementsByTagName('body')[0].className = '';
     }
 
-    onBackButton = e => {
+    onBackButton(e) {
         if ('keyCode' in e && e.keyCode !== 27) return;
         window.removeEventListener('popstate', this.onBackButton);
         window.removeEventListener('keydown', this.onBackButton);
-    };
-
-    attachScrollListener() {
-        window.addEventListener('scroll', this.scrollListener, {
-            capture: false,
-            passive: true,
-        });
-        window.addEventListener('resize', this.scrollListener, {
-            capture: false,
-            passive: true,
-        });
-        this.scrollListener();
     }
 
-    closeOnOutsideClick = e => {
+    closeOnOutsideClick(e) {
         const inside_post = findParent(e.target, 'PostsList__post_container');
         if (!inside_post) {
             const inside_top_bar = findParent(
@@ -86,24 +82,26 @@ class PostsList extends Component {
             );
             if (!inside_top_bar) {
                 const post_overlay = document.getElementById('post_overlay');
-                if (post_overlay)
+                if (post_overlay) {
                     post_overlay.removeEventListener(
                         'click',
                         this.closeOnOutsideClick
                     );
+                }
                 this.closePostModal();
             }
         }
-    };
-
-    detachScrollListener() {
-        window.removeEventListener('scroll', this.scrollListener);
-        window.removeEventListener('resize', this.scrollListener);
     }
 
     fetchIfNeeded() {
         this.scrollListener();
     }
+
+    toggleNegativeReplies = () => {
+        this.setState({
+            showNegativeComments: !this.state.showNegativeComments,
+        });
+    };
 
     scrollListener = debounce(() => {
         const el = window.document.getElementById('posts_list');
@@ -120,9 +118,12 @@ class PostsList extends Component {
             topPosition(el) + el.offsetHeight - scrollTop - window.innerHeight <
             10
         ) {
-            const { loadMore, posts, category, showResteem } = this.props;
-            if (loadMore && posts && posts.size)
+            const { loadMore, posts, category, reblogPref } = this.props;
+            let { showResteem } = this.props;
+            showResteem = reblogPref === 'disabled' ? false: showResteem;
+            if (loadMore && posts && posts.size) {
                 loadMore(posts.last(), category, showResteem);
+            }
         }
         // Detect if we're in mobile mode (renders larger preview imgs)
         const mq = window.matchMedia('screen and (max-width: 39.9375em)');
@@ -133,18 +134,81 @@ class PostsList extends Component {
         }
     }, 150);
 
-    toggleNegativeReplies = () => {
-        this.setState({
-            showNegativeComments: !this.state.showNegativeComments,
-        });
+    loadNextPosts = (e) => {
+        e.preventDefault();
+        const { loadMore, posts, category, reblogPref } = this.props;
+        let { showResteem } = this.props;
+        showResteem = reblogPref === 'disabled' ? false: showResteem;
+        if (loadMore && posts && posts.size) {
+            loadMore(posts.last(), category, showResteem);
+        }
     };
+
+    attachScrollListener() {
+        window.addEventListener('scroll', this.scrollListener, {
+            capture: false,
+            passive: true,
+        });
+        window.addEventListener('resize', this.scrollListener, {
+            capture: false,
+            passive: true,
+        });
+        this.scrollListener();
+    }
+
+    detachScrollListener() {
+        window.removeEventListener('scroll', this.scrollListener);
+        window.removeEventListener('resize', this.scrollListener);
+    }
+
+    calculateVotesWorth = (post) => {
+        try {
+            let avotes = post.get('active_votes').toJS();
+            let total_rshares = 0;
+            for (let v = 0; v < avotes.length; ++v) {
+                const { rshares } = avotes[v];
+                total_rshares += Number(rshares);
+            }
+            avotes.sort((a, b) =>
+                Math.abs(parseInt(a.rshares)) > Math.abs(parseInt(b.rshares))
+                ? -1
+                : 1 );
+
+            const max_payout = parsePayoutAmount(
+                post.get('max_accepted_payout')
+            );
+            const pending_payout = parsePayoutAmount(
+                post.get('pending_payout_value')
+            );
+            // const promoted = parsePayoutAmount(post.get('promoted'));
+            const total_author_payout = post.get('total_payout_value')
+                ? parsePayoutAmount(post.get('total_payout_value'))
+                : parsePayoutAmount(post.get('author_payout_value'));
+            const total_curator_payout = parsePayoutAmount(
+                post.get('curator_payout_value')
+            );
+            let payout = pending_payout + total_author_payout + total_curator_payout;
+            if (payout < 0.0) payout = 0.0;
+            if (payout > max_payout) payout = max_payout;
+
+            if (max_payout === 0) payout = pending_payout;
+
+            avotes = avotes.filter((vote) => ((payout * vote.rshares)/ total_rshares) > 2
+                && !(payout * (vote.rshares/total_rshares) > (40/100) * payout));
+
+            return avotes.length;
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     render() {
         const {
             posts,
             showFeatured,
             showPromoted,
-            showResteem,
+            // showResteem,
+            reblogPref,
             showSpam,
             loading,
             anyPosts,
@@ -157,9 +221,14 @@ class PostsList extends Component {
             nsfwPref,
             blacklist,
             coalStatus,
+            hideCategory
         } = this.props;
+        let { showResteem } = this.props
+        if(showResteem === undefined) showResteem = true
+        showResteem = reblogPref === 'disabled' ? false : showResteem;
         const { thumbSize } = this.state;
         const postsInfo = [];
+
         posts.forEach((item) => {
             const cont = content.get(item);
             if (!cont) {
@@ -168,13 +237,34 @@ class PostsList extends Component {
             }
             const ignore =
                 ignore_result && ignore_result.has(cont.get('author'));
-            const hideResteem =
-                !showResteem && account && cont.get('author') != account;
+            let hideResteem =
+                !showResteem && account && cont.get('author') !== account;
             const hide = cont.getIn(['stats', 'hide']);
-            if (!hideResteem && (!(ignore || hide) || showSpam))
-                // rephide
+            if (!hideResteem && (!(ignore || hide) || showSpam)) {
                 postsInfo.push({ item, ignore });
+            }
         });
+
+        // in case empty posts, do load next set of posts
+        if (
+            pathname === '/trending' ||
+            pathname === '/trending/' ||
+            pathname === '/hot' ||
+            pathname === '/hot/'
+        ) {
+            const { loadMore } = this.props;
+            if (
+                posts &&
+                posts.size > 0 &&
+                postsInfo !== undefined &&
+                postsInfo.length < 1 &&
+                loadMore
+            ) {
+                // empty posts
+                loadMore(posts.last(), category, showResteem);
+            }
+        }
+        /// ////
 
         // Helper functions for determining whether to show special posts.
         const isLoggedInOnFeed = username && pathname === `/@${username}/feed`;
@@ -194,8 +284,9 @@ class PostsList extends Component {
             if (!process.env.BROWSER) return null;
             return featuredPosts.map((featuredPost) => {
                 const id = `${featuredPost.author}/${featuredPost.permlink}`;
-                if (localStorage.getItem(`hidden-featured-post-${id}`))
+                if (localStorage.getItem(`hidden-featured-post-${id}`)) {
                     return null;
+                }
                 const featuredPostContent = content.get(id);
                 const isSeen = featuredPostContent.get('seen');
                 const close = (e) => {
@@ -216,6 +307,7 @@ class PostsList extends Component {
                                 featured
                                 onClose={close}
                                 blacklisted={blacklisted}
+                                hideCategory={hideCategory}
                             />
                         )}
                         {coalStatus === 'disabled' && (
@@ -227,6 +319,7 @@ class PostsList extends Component {
                                 nsfwPref={nsfwPref}
                                 featured
                                 onClose={close}
+                                hideCategory={hideCategory}
                             />
                         )}
                     </li>
@@ -247,8 +340,9 @@ class PostsList extends Component {
             if (!process.env.BROWSER) return null;
             return promotedPosts.map((promotedPost) => {
                 const id = `${promotedPost.author}/${promotedPost.permlink}`;
-                if (localStorage.getItem(`hidden-promoted-post-${id}`))
+                if (localStorage.getItem(`hidden-promoted-post-${id}`)) {
                     return null;
+                }
                 const promotedPostContent = content.get(id);
                 const isSeen = promotedPostContent.get('seen');
                 const close = (e) => {
@@ -266,6 +360,7 @@ class PostsList extends Component {
                             nsfwPref={nsfwPref}
                             promoted
                             onClose={close}
+                            hideCategory={hideCategory}
                         />
                     </li>
                 );
@@ -273,34 +368,72 @@ class PostsList extends Component {
         };
         const renderSummary = (items) =>
             items.map((item, i) => {
-                const every = this.props.adSlots.in_feed_1.every;
-                let author = content.get(item.item).get('author');
-                let blacklisted = blacklist.get(author);
-                if (this.props.shouldSeeAds && i >= every && i % every === 0) {
+                // const every = this.props.adSlots.in_feed_1.every;
+                const every = 5;
+                const author = content.get(item.item).get('author');
+                const blacklisted = blacklist.get(author);
+                const showAds = true;
+                if (showAds && i >= every && i % every === 0) {
                     return (
-                        <div key={item.item}>
-                            <li>
-                                {coalStatus === 'enabled' && (
-                                    <PostSummary
-                                        account={account}
-                                        post={item.item}
-                                        thumbSize={thumbSize}
-                                        ignore={item.ignore}
-                                        nsfwPref={nsfwPref}
-                                        blacklisted={blacklisted}
-                                    />
-                                )}
-                                {coalStatus === 'disabled' && (
-                                    <PostSummary
-                                        account={account}
-                                        post={item.item}
-                                        thumbSize={thumbSize}
-                                        ignore={item.ignore}
-                                        nsfwPref={nsfwPref}
-                                    />
-                                )}
-                            </li>
-                        </div>
+                        <li key={item.item}>
+                            {coalStatus === 'enabled' && (
+                                <PostSummary
+                                    account={account}
+                                    post={item.item}
+                                    thumbSize={thumbSize}
+                                    ignore={item.ignore}
+                                    nsfwPref={nsfwPref}
+                                    blacklisted={blacklisted}
+                                    hideCategory={hideCategory}
+                                />
+                            )}
+                            {coalStatus === 'disabled' && (
+                                <PostSummary
+                                    account={account}
+                                    post={item.item}
+                                    thumbSize={thumbSize}
+                                    ignore={item.ignore}
+                                    nsfwPref={nsfwPref}
+                                    blacklisted={
+                                        coalStatus ? blacklisted : undefined
+                                    }
+                                    hideCategory={hideCategory}
+                                />
+                            )}
+
+                            {/* <div className="articles__content-block--ad">
+                                <GptAd
+                                    tags={[category]}
+                                    type="Freestar"
+                                    id="bsa-zone_1566495089502-1_123456"
+                                />
+                            </div> */}
+                            {/* <div className="articles__content-block--ad">
+                                <iframe
+                                    data-aa="2059755"
+                                    title="A-ads bitcoin ads"
+                                    src="//acceptable.a-ads.com/2059755"
+                                    style={{
+                                        width: '100%',
+                                        border: '0px',
+                                        padding: '0',
+                                        overflow: 'hidden',
+                                        backgroundColor: 'transparent',
+                                    }}
+                                />
+                                <br />
+                                <div className="text-center">
+                                    <small>
+                                        <a
+                                            rel="external nofollow"
+                                            href="https://a-ads.com/?partner=2059755"
+                                        >
+                                            Join A-Ads Network
+                                        </a>
+                                    </small>
+                                </div>
+                            </div> */}
+                        </li>
                     );
                 }
                 return (
@@ -313,6 +446,7 @@ class PostsList extends Component {
                                 ignore={item.ignore}
                                 nsfwPref={nsfwPref}
                                 blacklisted={blacklisted}
+                                hideCategory={hideCategory}
                             />
                         )}
                         {coalStatus === 'disabled' && (
@@ -325,6 +459,7 @@ class PostsList extends Component {
                                 blacklisted={
                                     coalStatus ? blacklisted : undefined
                                 }
+                                hideCategory={hideCategory}
                             />
                         )}
                     </li>
@@ -350,6 +485,11 @@ class PostsList extends Component {
                             type="circle"
                         />
                     </center>
+                )}
+                {!loading && (pathname === '/trending'
+                || pathname === '/trending/' || pathname === '/hot'
+                || pathname === '/hot/') && (
+                <center><button type="button" className="button e-btn" onClick={(e) => this.loadNextPosts(e)}>Load More Posts</button></center>
                 )}
             </div>
         );
@@ -384,7 +524,8 @@ export default connect(
         const adSlots = state.app.getIn(['googleAds', 'adSlots']).toJS();
         const blacklist = state.global.get('blacklist');
 
-        const coalStatus = 'enabled';
+        const coalStatus = userPreferences.coalStatus || 'enabled';
+        const reblogPref = userPreferences.reblogs || 'enabled';
         return {
             ...props,
             pathname,
@@ -398,6 +539,7 @@ export default connect(
             adSlots,
             blacklist,
             coalStatus,
+            reblogPref,
         };
     },
     (dispatch) => ({

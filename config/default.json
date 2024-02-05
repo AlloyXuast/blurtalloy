@@ -1,8 +1,8 @@
 {
-    "facebook_app_id": false,
-    "google_analytics_id": "G-36BEYLLK6N",
+    "facebook_app_id": "793237358168604",
+    "google_analytics_id": "UA-179023138-1",
     "img_proxy_prefix": "https://imgp.blurt.world/",
-    "ipfs_prefix": "https://ipfs.alloyxuast.co.uk/ipfs/",
+    "ipfs_prefix": false,
     "notify": {
         "gcm_key": "google secret key"
     },
@@ -16,10 +16,10 @@
         "key": "SG.xxx_yyyy",
         "templates": {}
     },
-    "server_session_secret": "aG4swRtnrOqf/OHdna3kl4+Q3X6jLKufuYaGMYw9eoc=",
+    "server_session_secret": "HusUOYIruoK1yeYR/4QRuybQZP1UpkNaRkegTEN9u8w=",
     "session_cookie_key": "blurt-dev",
     "session_key": "blurt_session_key",
-    "site_domain": "blurt.alloyxuast.co.uk",
+    "site_domain": "blurt.blog",
     "telesign": {
         "customer_id": false,
         "rest_api_key": false
@@ -39,17 +39,18 @@
         "najirchat.cfd"
     ],
     "upload_image": "https://images.blurt.blog",
-    "blurtd_connection_client": "https://rpc.blurt.one",
-    "blurtd_connection_server": "https://rpc.blurt.one",
+    "blurtd_connection_client": "https://rpc.blurt.world",
+    "blurtd_connection_server": "https://rpc.blurt.world",
     "blurtd_use_appbase": true,
     "chain_id": "cd8d90f29ae273abec3eaa7731e25934c63eb654d55080caff2ebb7f5df6381f",
-    "alternative_api_endpoints": "https://rpc.blurt.world https://rpc.blurt.one https://rpc.blurt.live https://blurt-rpc.saboin.com https://rpc.nerdtopia.de https://rpc.dotwin1981.de https://kentzz.blurt.world/ https://rpc.blurtlatam.com/ https://blurt.ecosynthesizer.com/",
+    "alternative_api_endpoints": "https://rpc.blurt.world https://blurt-rpc.saboin.com https://rpc.nerdtopia.de https://rpc.dotwin1981.de https://kentzz.blurt.world/ https://rpc.blurtlatam.com/ https://blurt.ecosynthesizer.com/",
     "failover_threshold": 3,
     "address_prefix": "BLT",
     "conveyor_posting_wif": false,
     "conveyor_username": false,
-    "special_posts_url": "https://raw.githubusercontent.com/balvinder294/blurtlatam-pinned/main/pinned-posts.json",
-    "wallet_url": "https://blurtwallet.alloyxuast.co.uk",
+    "dapps_url": "https://gitlab.com/blurt/openblurt/condenser-pinned/-/raw/master/dapps.json",
+    "special_posts_url": "https://gitlab.com/blurt/openblurt/condenser-pinned/-/raw/master/pinned-posts.json",
+    "wallet_url": "https://blurtwallet.com",
     "gpt_banned_tags": ["nsfw", "tante"],
     "google_ad_enabled": true,
     "google_ad_test": false,

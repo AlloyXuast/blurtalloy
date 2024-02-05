@@ -8,7 +8,7 @@ Included on the page is a "To Do List" with recommended steps to get started wit
 
 Below that is a section of "Helpful Posts from Blurt Users", which contains a collection of posts from users in the community that are helpful for new users getting started.
 
-Below that is a list of recommended users to follow, a collection of other resources including the <a href="/faq.html">FAQ Page</a>, as well as information on where to find help.
+Below that is a list of recommended users to follow, a collection of other resources including the <a href="https://blurtwallet.com/faq.html">FAQ Page</a>, as well as information on where to find help.
 
 ## <span id="Table_of_Contents">Table of Contents</span>
 
@@ -34,7 +34,6 @@ Below that is a list of recommended users to follow, a collection of other resou
 -   <a href="#Digital_Currencies">Digital Currencies</a>
 -   <a href="#Curation">Curation</a>
 -   <a href="#Payments">Payments</a>
-<!-- - <a href="#Reputation">Reputation</a> -->
 -   <a href="#Plagiarism">Plagiarism</a>
 -   <a href="#Password_Security">Password Security</a>
 -   <a href="#Earning_on_BLurt">Earning on BLurt</a>
@@ -143,7 +142,7 @@ It is free to post, comment, or vote on all content on blurt.blog. You might eve
 
 Upvotes are Blurt's way of saying you like someone's post or comment.
 
-To upvote, click on the <Icon name="chevron-up-circle" /> _Upvote_ icon at the bottom of the post/comment.
+To upvote, click on the <Icon name="heart-outline" /> _Upvote_ icon at the bottom of the post/comment.
 
 <a href="#Table_of_Contents">^</a>
 
@@ -212,17 +211,6 @@ Payments for posts are split between the author (at least 50%) and the curators 
 The author reward is paid in 25% BLURT, and 75% Blurt Power by default.
 
 Authors also have the option to decline payout, or be paid in 100% Blurt Power!
-
-<!-- <a href="#Table_of_Contents">^</a>
-### <span id="Reputation">Reputation</span>
-
-A reputation score is one way that Blurt measures the amount of value you have brought to the community.
-
-The higher the reputation, the more upvotes the account received.
-
-All new users start at 25.
-
-Your reputation will go up as you earn upvotes for your posts and comments, but it can come down if they are downvoted (flagged). -->
 
 <a href="#Table_of_Contents">^</a>
 

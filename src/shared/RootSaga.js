@@ -4,6 +4,8 @@ import { sharedWatches } from 'app/redux/SagaShared';
 import { userWatches } from 'app/redux/UserSaga';
 import { authWatches } from 'app/redux/AuthSaga';
 import { transactionWatches } from 'app/redux/TransactionSaga';
+import { communityWatches } from 'app/redux/CommunitySaga';
+import { userProfilesWatches } from 'app/redux/UserProfilesSaga';
 import { watchPollingTasks } from 'app/redux/PollingSaga';
 
 export default function* rootSaga() {
@@ -13,6 +15,8 @@ export default function* rootSaga() {
         ...sharedWatches,
         ...authWatches,
         ...transactionWatches,
+        ...communityWatches,
+        ...userProfilesWatches,
         watchPollingTasks(),
     ]);
 }

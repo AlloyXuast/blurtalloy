@@ -9,6 +9,7 @@
     padding-top: 2rem;
     margin: 0 auto;
     max-width: 54rem;
+    position: relative;
     @include themify($themes) {
         border-bottom: themed('border');
     }
@@ -26,6 +27,7 @@
 
 .PostFull__time_author_category {
     font-weight: 400;
+    font-family: $body-font-family;
     border-right: none !important;
     @include themify($themes) {
         border-right: themed('border');
@@ -40,6 +42,7 @@
 }
 
 .PostFull__time_author_category_large {
+    // font-family: 'Nunito';
     margin: 1rem 0 1rem 0;
     line-height: 1.2;
     @include themify($themes) {
@@ -77,6 +80,7 @@
     }
     > h1 {
         overflow: hidden;
+        // font-family: 'Nunito', sans-serif;
         font-family: $body-font-family;
         font-size: 240%;
         font-weight: 800;
@@ -92,6 +96,7 @@
         font-weight: 600;
     }
     .PostFull__time_author_category {
+        // font-family: 'Nunito';
         border-right: none;
         .Icon.clock {
             top: 5px;

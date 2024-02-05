@@ -15,14 +15,12 @@ function loadDapps() {
         }
 
         const request = https.get(config.dapps_url, (resp) => {
-            console.log('Ressssp', resp);
             let data = '';
             resp.on('data', (chunk) => {
                 data += chunk;
             });
             resp.on('end', () => {
                 const json = JSON.parse(data);
-                console.info('Received dapps payload', json);
                 if (json === Object(json)) {
                     resolve(json);
                 }

@@ -1,9 +1,9 @@
 /* eslint react/prop-types: 0 */
-import { Component } from 'react';
+import React from 'react';
 import { FormattedRelative, injectIntl } from 'react-intl';
 import Tooltip from 'app/components/elements/Tooltip';
 
-class ContentEditedWrapper extends Component {
+class ContentEditedWrapper extends React.Component {
     render() {
         let { createDate, updateDate, className } = this.props;
         if (createDate === updateDate) return null;

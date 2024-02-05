@@ -30,8 +30,7 @@ import Translator from 'app/Translator';
 import { routeRegex } from 'app/ResolveRoute';
 import { contentStats } from 'app/utils/StateFunctions';
 import ScrollBehavior from 'scroll-behavior';
-import { getStateAsync } from 'app/utils/steemApi';
-import { composeWithDevTools } from '@redux-devtools/extension';
+import { callBridge, getStateAsync } from 'app/utils/blurtApi';
 
 let get_state_perf;
 let get_content_perf = false;
@@ -196,6 +195,7 @@ class OffsetScrollBehavior extends ScrollBehavior {
 
 const bindMiddleware = (middleware) => {
     if (process.env.BROWSER && process.env.NODE_ENV === 'development') {
+        const { composeWithDevTools } = require('redux-devtools-extension');
         return composeWithDevTools(applyMiddleware(...middleware));
     }
     return applyMiddleware(...middleware);
@@ -245,7 +245,7 @@ export async function serverRender(
     }
 
     if (error || !renderProps) {
-        // debug('error')('Router error', error);
+        console.error('Router error [404]', error, 'props?', !!renderProps);
         return {
             title: 'Page Not Found - Blurt',
             statusCode: 404,
@@ -264,9 +264,8 @@ export async function serverRender(
         // If a user profile URL is requested but no profile information is
         // included in the API response, return User Not Found.
         if (
-            (url.match(routeRegex.UserProfile1) ||
-                url.match(routeRegex.UserProfile3)) &&
-            Object.getOwnPropertyNames(onchain.accounts).length === 0
+            url.match(routeRegex.UserProfile) &&
+            Object.getOwnPropertyNames(onchain.profiles).length === 0
         ) {
             // protect for invalid account
             return {
@@ -280,28 +279,27 @@ export async function serverRender(
         if (!url.match(routeRegex.Post)) {
             for (const key in onchain.content) {
                 // Count some stats then remove voting data. But keep current user's votes. (#1040)
-                onchain.content[key].stats = contentStats(onchain.content[key]);
-                onchain.content[key].active_votes = null;
+                onchain.content[key]['active_votes'] = null;
             }
         }
 
         // Are we loading an un-category-aliased post?
         if (
-            !url.match(routeRegex.PostsIndex) &&
-            !url.match(routeRegex.UserProfile1) &&
-            !url.match(routeRegex.UserProfile2) &&
+            !url.match(routeRegex.UserProfile) &&
             url.match(routeRegex.PostNoCategory)
         ) {
-            const params = url.substr(2, url.length - 1).split('/');
             let content;
             if (process.env.OFFLINE_SSR_TEST) {
                 content = get_content_perf;
             } else {
-                content = await api.getContentAsync(params[0], params[1]);
+                const postref = url.substr(2, url.length - 1).split('/');
+                const params = { author: postref[0], permlink: postref[1] };
+                content = await callBridge('get_post_header', params);
             }
-            if (content.author && content.permlink) {
+            if (content && content.author && content.permlink && content.category) {
                 // valid short post url
-                onchain.content[url.substr(2, url.length - 1)] = content;
+                const { author, permlink, category } = content;
+                return { redirectUrl: `/${category}/@${author}/${permlink}` };
             } else {
                 // protect on invalid user pages (i.e /user/transferss)
                 return {
@@ -327,6 +325,7 @@ export async function serverRender(
         server_store = createStore(rootReducer, {
             app: initialState.app,
             global: onchain,
+            userProfiles: { profiles: onchain.profiles },
             offchain,
         });
         server_store.dispatch({
@@ -336,7 +335,7 @@ export async function serverRender(
         server_store.dispatch(appActions.setUserPreferences(userPreferences));
     } catch (e) {
         // Ensure 404 page when username not found
-        if (location.match(routeRegex.UserProfile1)) {
+        if (location.match(routeRegex.UserProfile)) {
             console.error('User/not found: ', location);
             return {
                 title: 'Page Not Found - Blurt',
@@ -464,7 +463,7 @@ async function apiGetState(url) {
         offchain = get_state_perf;
     }
 
-    offchain = await getStateAsync(url);
+    offchain = await getStateAsync(url, null, true);
 
     return offchain;
 }

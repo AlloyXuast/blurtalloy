@@ -133,14 +133,14 @@ function* usernamePasswordLogin2({
     const user = yield select((state) => state.user);
     const loginType = user.get('login_type');
     const justLoggedIn = loginType === 'basic';
-    console.log(
-        'Login type:',
-        loginType,
-        'Just logged in?',
-        justLoggedIn,
-        'username:',
-        username
-    );
+    // console.log(
+    //     'Login type:',
+    //     loginType,
+    //     'Just logged in?',
+    //     justLoggedIn,
+    //     'username:',
+    //     username
+    // );
 
     // login, using saved password
     let feedURL = false;
@@ -168,7 +168,7 @@ function* usernamePasswordLogin2({
     }
     // no saved password
     if (!username || !(password || useKeychain || login_with_keychain)) {
-        console.log('No saved password');
+        // console.log('No saved password');
         const offchain_account = yield select((state) =>
             state.offchain.get('account')
         );
@@ -403,7 +403,7 @@ function* usernamePasswordLogin2({
         const serverAccount = offchainData.get('account');
         const challengeString = offchainData.get('login_challenge');
         if (!serverAccount && challengeString) {
-            console.log('No server account, but challenge string');
+            // console.log('No server account, but challenge string');
             const signatures = {};
             const challenge = { token: challengeString };
             const buf = JSON.stringify(challenge, null, 0);
@@ -660,7 +660,7 @@ function* uploadImage({
         const reader = new FileReader();
         data = yield new Promise((resolve) => {
             reader.addEventListener('load', () => {
-                const result = new Buffer(reader.result, 'binary');
+                const result = Buffer.from(reader.result, 'binary');
                 resolve(result);
             });
             reader.readAsBinaryString(file);
@@ -669,11 +669,11 @@ function* uploadImage({
         // recover from preview
         const commaIdx = dataUrl.indexOf(',');
         dataBs64 = dataUrl.substring(commaIdx + 1);
-        data = new Buffer(dataBs64, 'base64');
+        data = Buffer.from(dataBs64, 'base64');
     }
 
     // The challenge needs to be prefixed with a constant (both on the server and checked on the client) to make sure the server can't easily make the client sign a transaction doing something else.
-    const prefix = new Buffer('ImageSigningChallenge');
+    const prefix = Buffer.from('ImageSigningChallenge');
     const buf = Buffer.concat([prefix, data]);
     const bufSha = hash.sha256(buf);
 

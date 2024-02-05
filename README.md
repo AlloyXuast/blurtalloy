@@ -51,7 +51,7 @@ Then do `Ctrl + o` and `Ctrl + x` to save and exit.
 The next time you want to relaunch Condenser, you can just do:
 ```bash
 source .chicken
-docker run -it -p 8080:8080 -e SDC_SESSION_SECRETKEY=$CHICKEN balvinder294/blurtlatam
+docker run -it -p 8080:8080 -e SDC_SESSION_SECRETKEY=$CHICKEN registry.gitlab.com/blurt/blurt/condenser
 ```
 
 If you would like to modify, build, and run condenser using docker, it's as
@@ -63,8 +63,8 @@ apt update
 apt upgrade
 apt install git
 curl -s https://get.docker.com | bash
-git clone https://github.com/balvinder294/blurtlatam
-cd blurtlatam
+git clone https://gitlab.com/blurt/blurt.git
+cd blurt/ui/condenser
 docker build . -t="myname/condenser:mybranch"
 docker run -it -p 8080:8080 -e SDC_SESSION_SECRETKEY=$CHICKEN myname/condenser:mybranch
 ```

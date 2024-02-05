@@ -29,8 +29,9 @@ import koaLocale from 'koa-locale';
 import { getSupportedLocales } from './utils/misc';
 import { specialPosts } from './utils/SpecialPosts';
 import fs from 'fs';
-
 import { Dapps } from './utils/Dapps';
+import nsfwPosts from './utils/NSFWPosts';
+
 // const session = require('koa-session');
 
 if (cluster.isMaster) console.log('application server starting, please wait.');
@@ -182,7 +183,7 @@ app.use(function* (next) {
     // normalize user name url from cased params
     if (
         this.method === 'GET' &&
-        (routeRegex.UserProfile1.test(this.url) ||
+        (routeRegex.UserProfile.test(this.url) ||
             routeRegex.PostNoCategory.test(this.url) ||
             routeRegex.Post.test(this.url))
     ) {
@@ -291,16 +292,24 @@ if (env !== 'test') {
     // we're inside a generator, we can't `await` here, so we pass a promise
     // so `src/server/app_render.jsx` can `await` on it.
     app.specialPostsPromise = specialPosts();
-
-    app.dappsPromise = Dapps();
-
     // refresh special posts every five minutes
-    setInterval(function () {
-        return new Promise(function (resolve, reject) {
+    setInterval(() => {
+        return new Promise((resolve, reject) => {
             app.specialPostsPromise = specialPosts();
             resolve();
         });
     }, 300000);
+
+    app.nsfwPostsPromise = nsfwPosts();
+    // refresh nsfw posts every five minutes
+    setInterval(() => {
+        return new Promise((resolve, reject) => {
+            app.nsfwPostsPromise = nsfwPosts();
+            resolve();
+        });
+    }, 300000);
+
+    app.dappsPromise = Dapps();
 
     app.use(function* () {
         yield appRender(this, supportedLocales, resolvedAssets);
@@ -314,7 +323,7 @@ if (env !== 'test') {
 
     const argv = minimist(process.argv.slice(2));
 
-    const port = process.env.PORT ? parseInt(process.env.PORT) : 3009;
+    const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
 
     if (env === 'production') {
         if (cluster.isMaster) {

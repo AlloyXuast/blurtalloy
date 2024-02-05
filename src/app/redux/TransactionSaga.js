@@ -23,6 +23,11 @@ export const transactionWatches = [
     takeEvery(transactionActions.BROADCAST_OPERATION, broadcastOperation),
 ];
 
+const wait = (ms) =>
+    new Promise((resolve) => {
+        setTimeout(() => resolve(), ms);
+    });
+
 const hook = {
     preBroadcast_comment,
     preBroadcast_vote,
@@ -47,6 +52,7 @@ function* preBroadcast_vote({ operation, username }) {
             value: true,
         })
     );
+    yield call(wait, 1000);
     yield put(
         globalActions.voted({ username: voter, author, permlink, weight })
     );
@@ -415,7 +421,6 @@ function* accepted_vote({ operation: { author, permlink, weight } }) {
             key: `transaction_vote_active_${author}_${permlink}`,
         })
     );
-    yield call(getContent, { author, permlink });
 }
 
 export function* preBroadcast_comment({ operation, username }) {
@@ -438,7 +443,7 @@ export function* preBroadcast_comment({ operation, username }) {
     if (originalBody) {
         const patch = createPatch(originalBody, body);
         // Putting body into buffer will expand Unicode characters into their true length
-        if (patch && patch.length < new Buffer(body, 'utf-8').length) {
+        if (patch && patch.length < Buffer.from(body, 'utf-8').length) {
             body2 = patch;
         }
     }

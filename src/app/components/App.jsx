@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import AppPropTypes from 'app/utils/AppPropTypes';
@@ -13,7 +13,7 @@ import WelcomePanel from 'app/components/elements/WelcomePanel';
 import tt from 'counterpart';
 import { VIEW_MODE_WHISTLE } from 'shared/constants';
 
-class App extends Component {
+class App extends React.Component {
     constructor(props) {
         super(props);
         // TODO: put both of these and associated toggles into Redux Store.
@@ -24,31 +24,34 @@ class App extends Component {
         this.listenerActive = null;
     }
 
-    componentDidMount() {
-        const { nightmodeEnabled } = this.props;
-        this.toggleBodyNightmode(nightmodeEnabled);
-        if (process.env.BROWSER) localStorage.removeItem('autopost'); // July 14 '16 compromise, renamed to autopost2
-        // eslint-disable-next-line react/destructuring-assignment
-        this.props.loginUser();
+    toggleBodyNightmode(nightmodeEnabled) {
+        if (nightmodeEnabled) {
+            document.body.classList.remove('theme-light');
+            document.body.classList.add('theme-dark');
+        } else {
+            document.body.classList.remove('theme-dark');
+            document.body.classList.add('theme-light');
+        }
     }
 
-    // loadCMPScript() {
-    //     const script = document.createElement('script');
-    //     script
-    // }
-
-    UNSAFE_componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps) {
         const { nightmodeEnabled } = nextProps;
         this.toggleBodyNightmode(nightmodeEnabled);
     }
 
+    componentWillMount() {
+        if (process.env.BROWSER) localStorage.removeItem('autopost'); // July 14 '16 compromise, renamed to autopost2
+        this.props.loginUser();
+    }
+
+    componentDidMount() {
+        const { nightmodeEnabled } = this.props;
+        this.toggleBodyNightmode(nightmodeEnabled);
+    }
+
     shouldComponentUpdate(nextProps, nextState) {
-        const {
-            pathname,
-            new_visitor,
-            nightmodeEnabled,
-            showAnnouncement,
-        } = this.props;
+        const { pathname, new_visitor, nightmodeEnabled, showAnnouncement } =
+            this.props;
         const n = nextProps;
         return (
             pathname !== n.pathname ||
@@ -63,16 +66,6 @@ class App extends Component {
     setShowBannerFalse = () => {
         this.setState({ showBanner: false });
     };
-
-    toggleBodyNightmode(nightmodeEnabled) {
-        if (nightmodeEnabled) {
-            document.body.classList.remove('theme-light');
-            document.body.classList.add('theme-dark');
-        } else {
-            document.body.classList.remove('theme-dark');
-            document.body.classList.add('theme-light');
-        }
-    }
 
     render() {
         const {
@@ -188,6 +181,14 @@ class App extends Component {
                             setShowBannerFalse={this.setShowBannerFalse}
                         />
                     ) : null}
+                    {/* <div style={{backgroundColor: 'whitesmoke'}} className="text-center">
+                <h4>
+                  Blurt is experiencing a technical issue and is currently under maintenance. Please follow our Discord and Twitter socials for regular updates
+                </h4>
+                <a type="button" className="button primary" href="https://twitter.com/BlurtOfficial">Twitter</a>
+                &nbsp;&nbsp;
+                <a type="button" className="button primary" href="https://discord.blurt.world/">Discord</a>
+              </div> */}
                     {callout}
                     {children}
                 </div>

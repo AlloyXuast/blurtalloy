@@ -1,10 +1,10 @@
 /* eslint react/prop-types: 0 */
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import * as appActions from 'app/redux/AppReducer';
 
-class ArticleLayoutSelector extends Component {
+class ArticleLayoutSelector extends React.Component {
     render() {
         return (
             <div className="articles__layout-selector">
@@ -58,7 +58,7 @@ export default connect(
     (state) => ({
         blogmode:
             state.app.getIn(['user_preferences', 'blogmode']) === undefined
-                ? true
+                ? false
                 : state.app.getIn(['user_preferences', 'blogmode']),
     }),
     (dispatch) => ({

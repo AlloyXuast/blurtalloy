@@ -1,12 +1,11 @@
-/* eslint-disable react/static-property-placement */
-import PropTypes from 'prop-types';
-import { createElement, Component } from 'react';
+import React from 'react';
+import { browserHistory } from 'react-router';
+import Icon from 'app/components/elements/Icon';
 import { findParent } from 'app/utils/DomUtils';
-
-export default class Dropdown extends Component {
-
+import PropTypes from 'prop-types';
+export default class Dropdown extends React.Component {
     static propTypes = {
-        children: PropTypes.any,
+        children: PropTypes.object,
         className: PropTypes.string,
         title: PropTypes.oneOfType([
             PropTypes.string,
@@ -33,7 +32,7 @@ export default class Dropdown extends Component {
         };
     }
 
-    UNSAFE_componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps) {
         if (nextProps.show !== this.state.shown) {
             this.setState({ shown: nextProps.show });
         }
@@ -43,14 +42,11 @@ export default class Dropdown extends Component {
         document.removeEventListener('click', this.hide);
     }
 
-    hide = (e) => {
-        // Do not hide the dropdown if there was a click within it.
-        const inside_dropdown = !!findParent(e.target, 'dropdown__content');
-        if (inside_dropdown) return;
-        e.preventDefault();
-        this.setState({ shown: false });
-        this.props.onHide();
-        document.removeEventListener('click', this.hide);
+    toggle = (e) => {
+        const { shown } = this.state;
+        if (shown) {
+            this.hide(e);
+        } else this.show(e);
     };
 
     show = (e) => {
@@ -60,11 +56,14 @@ export default class Dropdown extends Component {
         document.addEventListener('click', this.hide);
     };
 
-    toggle = (e) => {
-        const { shown } = this.state;
-        if (shown) {
-            this.hide(e);
-        } else this.show(e);
+    hide = (e) => {
+        // Do not hide the dropdown if there was a click within it.
+        const inside_dropdown = !!findParent(e.target, 'dropdown__content');
+        if (inside_dropdown) return;
+        e.preventDefault();
+        this.setState({ shown: false });
+        this.props.onHide();
+        document.removeEventListener('click', this.hide);
     };
 
     render() {
@@ -86,7 +85,7 @@ export default class Dropdown extends Component {
             (this.state.shown ? ' show' : '') +
             (className ? ` ${className}` : '') +
             (position ? ` ${position}` : '');
-        return createElement('div', { className: cls, key: 'dropdown' }, [
+        return React.createElement('div', { className: cls, key: 'dropdown' }, [
             entry,
             content,
         ]);

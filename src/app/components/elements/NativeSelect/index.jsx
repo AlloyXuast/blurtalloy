@@ -1,3 +1,4 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 
 const NativeSelect = ({ options, className, currentlySelected, onChange }) => {
@@ -5,9 +6,14 @@ const NativeSelect = ({ options, className, currentlySelected, onChange }) => {
         onChange(event.target);
     };
 
-    const opts = options.map((val) => {
+    const opts = options.map((val, key) => {
         return (
-            <option key={val.name + val.label} value={val.value}>
+            <option 
+                key={`${key}-NativeSelect-${val.name}-${val.label}`}
+                value={val.value}
+                disabled={val.disabled ? val.disabled : false}
+                style={val.title ? { backgroundColor: '#f4f4f4', fontWeight: 'bolder' } : {}}
+            >
                 {val.label}
             </option>
         );

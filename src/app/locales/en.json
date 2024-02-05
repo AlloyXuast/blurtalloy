@@ -1,5 +1,8 @@
 {
     "g": {
+        "administrator": "admin",
+        "administrators": "admins",
+        "account_info": "Account Info",
         "age": "age",
         "amount": "Amount",
         "and": "and",
@@ -23,6 +26,17 @@
         "clear": "Clear",
         "close": "Close",
         "collapse_or_expand": "Collapse/Expand",
+        "community": "Community",
+        "communities": "Communities",
+        "community_list_header": "Communities",
+        "community_search_no_result": "No results for your search",
+        "community_settings_header": "Community Settings",
+        "community_settings_description": "What does your community stand for?",
+        "community_user_role_edit_header": "Change User Role",
+        "community_user_role_add_header": "Add User Role",
+        "community_user_role_add_description": "Set the role of a user in this community.",
+        "community_user_title_edit_description": "Set Title for @%(username)s",
+        "community_beneficiary": "3% beneficiary will be automatically added to @%(community)s",
         "comments": "Comments",
         "confirm": "Confirm",
         "convert": "Convert",
@@ -31,6 +45,7 @@
         "dismiss": "Dismiss",
         "edit": "Edit",
         "email": "Email",
+        "explore_communities": "Explore Communities",
         "external_link_message": "This link will take you away from blurt.blog",
         "affiliation_steemit": "Blurt Team",
         "affiliation_sm": "Splinterlands Team",
@@ -38,6 +53,9 @@
         "follow": "Follow",
         "for": " for ",
         "from": " from ",
+        "flag": "Flag",
+        "flag_this_post": "Flag this %(type)s",
+        "flag_this_post_description": "Please provide a note regarding your decision to flag this %(type)s, it will be reviewed by community moderators.",
         "go_back": "Back",
         "hide": "Hide",
         "in": "in",
@@ -51,7 +69,9 @@
         "logout": "Logout",
         "memo": "Memo",
         "mute": "Mute",
+        "muted": "Muted",
         "my_blog": "My blog",
+        "my_posts": "My posts",
         "my_comments": "My comments",
         "my_feed": "My feed",
         "my_replies": "Replies to me",
@@ -77,7 +97,11 @@
         "powered_up_100": "Powered Up 100%%",
         "preview": "Preview",
         "previous": "Previous",
+        "payout": "Payout",
         "price": "Price",
+        "pin": "Pin",
+        "unpin": "Unpin",
+        "pinned": "Pinned",
         "print": "Print",
         "promote": "Promote",
         "promoted": "Promoted",
@@ -114,6 +138,7 @@
         "sign_up": "Sign up",
         "since": "since %(date)s",
         "submit": "Submit",
+        "subscriptions": "Subscriptions",
         "power_up": "Power Up",
         "submit_a_story": "Post",
         "tag": "Tag",
@@ -124,11 +149,20 @@
         "ready_to_post": "Ready to Post",
         "all_tags": "All tags",
         "all_tags_mobile": "All content",
+        "all_posts": "All Posts",
+        "trending_tags": "Trending Tags",
+        "my_communities": "My Communities",
+        "my_subscriptions": "My Subscriptions",
         "transfer": "Transfer ",
         "trending_topics": "Trending Topics",
         "try_again": "Try Again",
         "type": "Type",
         "unfollow": "Unfollow",
+        "unmoderated_tag": "Unmoderated tag",
+        "mute_this_post": "Mute post/comment",
+        "mute_this_post_description": "Please provide a note regarding your decision to mute this content.",
+        "unmute_this_post": "Unmute this post/comment",
+        "unmute_this_post_description": "Please provide a note regarding your decision to unmute this content.",
         "unmute": "Unmute",
         "unknown": "Unknown",
         "upvote": "Upvote",
@@ -218,6 +252,7 @@
         "read_only_mode": "Due to server maintenance we are running in read only mode. We are sorry for the inconvenience.",
         "tags_and_topics": "Tags",
         "show_more_topics": "View all tags",
+        "show_more_communities": "Explore communities",
         "basic": "Basic",
         "advanced": "Advanced",
         "views": {
@@ -236,6 +271,15 @@
             "checkbox": "I understand"
         }
     },
+    "main_menu": {
+        "hot": "Hot",
+        "trending": "Trending",
+        "posts": "Posts",
+        "proposals": "Proposals",
+        "witnesses": "Witnesses",
+        "communities": "Communities",
+        "dapps": "dApps"
+    },
     "navigation": {
         "about": "About",
         "explore": "Explore Content",
@@ -249,6 +293,7 @@
         "change_recovery_account": "Change Recovery Account",
         "account_recovery_tools": "Account Recovery Tools",
         "vote_for_witnesses": "Vote for Witnesses",
+        "vote_for_proposals": "Vote for Proposals",
         "privacy_policy": "Privacy Policy",
         "terms_of_service": "Terms of Service",
         "sign_up": "Sign up",
@@ -256,6 +301,7 @@
         "welcome": "Welcome",
         "faq": "FAQ",
         "chat": "Blurt Chat",
+        "discord": "Blurt Discord Server",
         "app_center": "Apps Built on Blurt",
         "business_center": "Businesses Accepting Blurt",
         "api_docs": "Blurt API Docs",
@@ -265,10 +311,6 @@
         "intro_tagline": "A world of social liberty and fairness",
         "intro_paragraph": "Get paid for good content. Post and upvote articles on Blurt.blog to get your share of the daily rewards pool.",
         "jobs": "Jobs at Blurt.blog"
-    },
-    "main_menu": {
-        "hot": "Hot",
-        "trending": "Trending"
     },
     "reply_editor": {
         "shorten_title": "Shorten title",
@@ -328,7 +370,8 @@
         "use_spaces_to_separate_tags": "Use spaces to separate tags.",
         "use_only_allowed_characters": "Use only lowercase letters, digits and one dash.",
         "must_start_with_a_letter": "Must start with a letter.",
-        "must_end_with_a_letter_or_number": "Must end with a letter or number."
+        "must_end_with_a_letter_or_number": "Must end with a letter or number.",
+        "must_not_include_nexus_community_owner": "Post already has %(blurt)s tag by default, please do not include another 'blurt-' tag."
     },
     "post_advanced_settings_jsx": {
         "payout_option_header": "Author rewards",
@@ -511,6 +554,7 @@
         "alternative_sources": "Alternative Sources"
     },
     "header_jsx": {
+        "my_friends": "My Friends",
         "home": "home",
         "create_a_post": "Create a post",
         "change_account_password": "Change Account Password",
@@ -612,8 +656,11 @@
         "sort_by_trending": "Sort by Trending",
         "sort_by_reputation": "Sort by Author Reputation",
         "enable_coal": "Enabled",
+        "show_reblogs": "Show Reblogs",
+        "hide_reblogs": "Hide Reblogs",
         "disable_coal": "Disabled",
-        "coal_list": "Toggle Coal List"
+        "coal_list": "Toggle Coal List",
+        "reblog_toggle": "Toggle Reblogs"
     },
     "transfer_jsx": {
         "amount_is_in_form": "Amount is in the form 99999.999",
@@ -704,6 +751,7 @@
         "follow": "%(account)s started following you",
         "reblog": "%(account)s reblogged your post",
         "witness_vote": "%(account)s has approved your witness",
+        "witness_vote_remove": "%(account)s has unapproved your witness",
         "mark_all_as_read": "Mark all as read",
         "replies": "Replies",
         "follows": "Follows",

@@ -1,18 +1,21 @@
+/* eslint-disable operator-linebreak */
+/* eslint-disable react/destructuring-assignment */
+/* eslint-disable react/sort-comp */
+/* eslint-disable react/require-default-props */
 /* eslint-disable react/static-property-placement */
-import React, { Component } from 'react';
+/* eslint-disable react/forbid-prop-types */
+import React from 'react';
 import PropTypes from 'prop-types';
 import Comment, { sortComments } from 'app/components/cards/Comment';
 import PostFull from 'app/components/cards/PostFull';
 import { immutableAccessor } from 'app/utils/Accessors';
 import extractContent from 'app/utils/ExtractContent';
 import { connect } from 'react-redux';
+import { Map } from 'immutable';
 
 import DropdownMenu from 'app/components/elements/DropdownMenu';
-import { Set } from 'immutable';
 import tt from 'counterpart';
-import shouldComponentUpdate from 'app/utils/shouldComponentUpdate';
 import { serverApiRecordEvent } from 'app/utils/ServerApiClient';
-import { INVEST_TOKEN_UPPERCASE } from 'app/client_config';
 import { SIGNUP_URL } from 'shared/constants';
 import GptAd from 'app/components/elements/GptAd';
 import { isLoggedIn } from 'app/utils/UserUtil';
@@ -20,7 +23,7 @@ import AdSense from 'react-adsense';
 import Icon from 'app/components/elements/Icon';
 import { api } from '@blurtfoundation/blurtjs';
 
-class Post extends Component {
+class Post extends React.Component {
     static propTypes = {
         content: PropTypes.object.isRequired,
         post: PropTypes.string,
@@ -30,20 +33,16 @@ class Post extends Component {
 
     constructor() {
         super();
+        this.componentUnmounted = false;
         this.state = {
             showNegativeComments: false,
-            authorMutedUsers: undefined,
-            authorMutedUsersLoaded: false
+            authorMutedUsers: [],
+            authorMutedUsersLoaded: false,
         };
         this.showSignUp = () => {
             serverApiRecordEvent('SignUp', 'Post Promo');
             window.location = SIGNUP_URL;
         };
-    }
-
-    // eslint-disable-next-line react/no-deprecated
-    componentWillMount() {
-        this.loadAuthorMutedUsers();
     }
 
     componentDidMount() {
@@ -54,10 +53,26 @@ class Post extends Component {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (prevState.authorMutedUsersLoaded !== this.state.authorMutedUsersLoaded) {
+    componentWillMount() {
+        if (!this.componentUnmounted && !this.state.authorMutedUsersLoaded) {
             this.loadAuthorMutedUsers();
         }
+    }
+
+    // componentDidUpdate(prevProps, prevState) {
+    //     console.log('Update lifecycle');
+    //     if (
+    //         prevState.authorMutedUsersLoaded !==
+    //         this.state.authorMutedUsersLoaded
+    //     ) {
+    //         if(!this.componentUnmounted) {
+    //             this.loadAuthorMutedUsers();
+    //         }
+    //     }
+    // }
+
+    componentWillUnmount() {
+        this.componentUnmounted = true;
     }
 
     loadAuthorMutedUsers() {
@@ -68,25 +83,77 @@ class Post extends Component {
         }
         const dis = this.props.content.get(post);
 
-        const emptyPost = !dis || (dis.get('created') === '1970-01-01T00:00:00' && dis.get('body') === '');
+        const emptyPost =
+            !dis ||
+            (dis.get('created') === '1970-01-01T00:00:00' &&
+                dis.get('body') === '');
 
-        if (!emptyPost && !this.state.authorMutedUsersLoaded) {
+        if (!emptyPost) {
             const author = dis.get('author');
 
-            api.getFollowingAsync(author, null, 'ignore', 1000)
-                .then((res) => {
+            const getFollowingAsync = async () => {
+                try {
+                    const followingAsyncResp = await api.getFollowingAsync(
+                        author,
+                        null,
+                        'ignore',
+                        1000
+                    );
                     const mutedUsers = [];
-                    res.forEach((follow) => {
-                        mutedUsers.push(follow.following)
+                    if (followingAsyncResp) {
+                        // eslint-disable-next-line no-restricted-syntax
+                        for (const follow of followingAsyncResp) {
+                            mutedUsers.push(follow.following);
+                        }
+                        this.setState({
+                            authorMutedUsers: mutedUsers,
+                            authorMutedUsersLoaded: true,
+                        });
+                    } else {
+                        console.warn('Error in loading muted users');
+                        this.setState({
+                            authorMutedUsers: [],
+                            authorMutedUsersLoaded: true,
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Error in loading muted users');
+                    this.setState({
+                        authorMutedUsers: [],
+                        authorMutedUsersLoaded: true,
                     });
-                    this.setState({ authorMutedUsers: mutedUsers, authorMutedUsersLoaded: true })
-                })
-                .catch((err) => {
-                    console.warn('Error in loading muted users')
-                    this.setState({ authorMutedUsers: [], authorMutedUsersLoaded: true })
-                })
+                }
+            };
+
+            getFollowingAsync();
+
+            // api.getFollowingAsync(author, null, 'ignore', 1000)
+            //     .then((res) => {
+            //         const mutedUsers = [];
+            //         res.forEach((follow) => {
+            //             mutedUsers.push(follow.following);
+            //         });
+            //         this.setState({
+            //             authorMutedUsers: mutedUsers,
+            //             authorMutedUsersLoaded: true,
+            //         });
+            //     })
+            //     .catch((err) => {
+            //         console.warn('Error in loading muted users');
+            //         this.setState({
+            //             authorMutedUsers: [],
+            //             authorMutedUsersLoaded: true,
+            //         });
+            //     });
         }
     }
+
+    toggleNegativeReplies = (e) => {
+        this.setState({
+            showNegativeComments: !this.state.showNegativeComments,
+        });
+        e.preventDefault();
+    };
 
     onHideComment = () => {
         this.setState({ commentHidden: true });
@@ -96,18 +163,15 @@ class Post extends Component {
         this.setState({ showAnyway: true });
     };
 
-    toggleNegativeReplies = (e) => {
-        this.setState({
-            showNegativeComments: !this.state.showNegativeComments,
-        });
-        e.preventDefault();
-    };
-
     render() {
         const { showSignUp } = this;
         const { content, sortOrder } = this.props;
         const {
-            showNegativeComments, commentHidden, showAnyway, authorMutedUsers, authorMutedUsersLoaded
+            showNegativeComments,
+            commentHidden,
+            showAnyway,
+            authorMutedUsers,
+            authorMutedUsersLoaded,
         } = this.state;
         let { post } = this.props;
         if (!post) {
@@ -115,48 +179,51 @@ class Post extends Component {
             post = route_params.username + '/' + route_params.slug;
         }
         const dis = content.get(post);
+        // const dis = aux_content ? Map(aux_content) : Map();
 
         // check if the post doesn't exist
         // !dis may be enough but keep 'created' & 'body' test for potential compatibility
-        const emptyPost = !dis
-            || (dis.get('created') === '1970-01-01T00:00:00'
-                && dis.get('body') === '');
+        const emptyPost =
+            !dis ||
+            (dis.get('created') === '1970-01-01T00:00:00' &&
+                dis.get('body') === '');
 
-        if (emptyPost) return (
-            <div className="NotFound float-center">
-                <div>
-                    <Icon name="blurt" size="4x" />
-                    <h4 className="NotFound__header">
-                        Sorry! This page doesn't exist.
-                    </h4>
-                    <p>
-                        Not to worry. You can head back to
-                        {' '}
-                        <a style={{ fontWeight: 800 }} href="/">
-                            our homepage
-                        </a>
-                        , or check out some great posts.
-                    </p>
-                    <ul className="NotFound__menu">
-                        <li>
-                            <a href="/created">new posts</a>
-                        </li>
-                        <li>
-                            <a href="/hot">hot posts</a>
-                        </li>
-                        <li>
-                            <a href="/trending">trending posts</a>
-                        </li>
-                        <li>
-                            <a href="/promoted">promoted posts</a>
-                        </li>
-                        <li>
-                            <a href="/active">active posts</a>
-                        </li>
-                    </ul>
+        if (emptyPost) {
+            return (
+                <div className="NotFound float-center">
+                    <div>
+                        <Icon name="blurt" size="4x" />
+                        <h4 className="NotFound__header">
+                            Sorry! This page doesn't exist.
+                        </h4>
+                        <p>
+                            Not to worry. You can head back to{' '}
+                            <a style={{ fontWeight: 800 }} href="/">
+                                our homepage
+                            </a>
+                            , or check out some great posts.
+                        </p>
+                        <ul className="NotFound__menu">
+                            <li>
+                                <a href="/created">new posts</a>
+                            </li>
+                            <li>
+                                <a href="/hot">hot posts</a>
+                            </li>
+                            <li>
+                                <a href="/trending">trending posts</a>
+                            </li>
+                            <li>
+                                <a href="/promoted">promoted posts</a>
+                            </li>
+                            <li>
+                                <a href="/active">active posts</a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        );
+            );
+        }
 
         // TODO: This data model needs some help.
         const post_content = content.get(post);
@@ -178,8 +245,7 @@ class Post extends Component {
                                         {tt(
                                             'promote_post_jsx.this_post_was_hidden_due_to_low_ratings'
                                         )}
-                                        .
-                                        {' '}
+                                        .{' '}
                                         <button
                                             style={{ marginBottom: 0 }}
                                             className="button hollow tiny float-right"
@@ -198,9 +264,11 @@ class Post extends Component {
 
         let replies = [];
 
-        if(authorMutedUsersLoaded && authorMutedUsers !== undefined) {
+        if (authorMutedUsersLoaded && authorMutedUsers !== undefined) {
             replies = dis.get('replies').toJS();
-            replies = replies.filter((reply) => !authorMutedUsers.includes(reply.split('/')[0]))
+            replies = replies.filter(
+                (reply) => !authorMutedUsers.includes(reply.split('/')[0])
+            );
         }
 
         sortComments(content, replies, sortOrder);
@@ -211,25 +279,27 @@ class Post extends Component {
             replies = replies.slice(0, commentLimit);
         }
         let commentCount = 0;
+
         const positiveComments = replies.map((reply) => {
             commentCount++;
-            const showAd = commentCount % 5 == 0
-                && commentCount != replies.length
-                && commentCount != commentLimit;
+            const showAd =
+                commentCount % 5 == 0 &&
+                commentCount != replies.length &&
+                commentCount != commentLimit;
 
             return (
                 <div key={post + reply}>
                     {authorMutedUsersLoaded ? (
                         <Comment
                             root
-                            authorMutedUsers={authorMutedUsers}
                             content={reply}
+                            authorMutedUsers={authorMutedUsers}
                             cont={content}
                             sort_order={sortOrder}
                             showNegativeComments={showNegativeComments}
                             onHide={this.onHideComment}
-                    />
-                    ):null}
+                        />
+                    ) : null}
 
                     {this.props.gptEnabled && showAd ? (
                         <div className="Post_footer__ad">
@@ -250,10 +320,9 @@ class Post extends Component {
                     {showNegativeComments
                         ? tt('post_jsx.now_showing_comments_with_low_ratings')
                         : tt(
-                            'post_jsx.comments_were_hidden_due_to_low_ratings'
-                        )}
-                    .
-                    {' '}
+                              'post_jsx.comments_were_hidden_due_to_low_ratings'
+                          )}
+                    .{' '}
                     <button
                         className="button hollow tiny float-right"
                         onClick={(e) => this.toggleNegativeReplies(e)}
@@ -287,11 +356,15 @@ class Post extends Component {
                 <div className="row">
                     <div className="column">
                         {authorMutedUsersLoaded && authorMutedUsers && (
-                            <PostFull authorMutedUsers={authorMutedUsers} post={post} cont={content} />
+                            <PostFull
+                                authorMutedUsers={authorMutedUsers}
+                                post={post}
+                                cont={content}
+                            />
                         )}
                     </div>
                 </div>
-                {!isLoggedIn() && (
+                {authorMutedUsersLoaded && !isLoggedIn() && (
                     <div className="row">
                         <div className="column">
                             <div className="Post__promo">
@@ -315,6 +388,37 @@ class Post extends Component {
                         </div>
                     </div>
                 )}
+
+                {authorMutedUsersLoaded && authorMutedUsers ? (
+                    <div className="row">
+                        <div className="column">
+                            <iframe
+                                data-aa="2059755"
+                                title="A-ads bitcoin ads"
+                                src="//acceptable.a-ads.com/2059755"
+                                style={{
+                                    width: '100%',
+                                    border: '0px',
+                                    padding: '0',
+                                    overflow: 'hidden',
+                                    backgroundColor: 'transparent',
+                                }}
+                            />
+                            <br />
+                            <div className="text-center">
+                                <small>
+                                    <a
+                                        rel="external nofollow"
+                                        href="https://a-ads.com/?partner=2059755"
+                                    >
+                                        Join A-Ads Network
+                                    </a>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                ) : null}
+
                 {authorMutedUsersLoaded && authorMutedUsers ? (
                     <div id="#comments" className="Post_comments row hfeed">
                         <div className="column large-12">
@@ -328,16 +432,15 @@ class Post extends Component {
                                             el="li"
                                             selected={sort_label}
                                             position="left"
-                                    />
+                                        />
                                     </div>
-                            ) : null}
+                                ) : null}
                                 {positiveComments}
                                 {negativeGroup}
                             </div>
                         </div>
                     </div>
-                ):null}
-
+                ) : null}
                 {this.props.gptEnabled ? (
                     <div className="Post_footer__ad">
                         <GptAd
@@ -365,8 +468,8 @@ export default connect((state, ownProps) => {
     return {
         content: state.global.get('content'),
         sortOrder:
-            ownProps.router.getCurrentLocation().query.sort
-            || state.app.getIn(
+            ownProps.router.getCurrentLocation().query.sort ||
+            state.app.getIn(
                 ['user_preferences', 'defaultCommentsSortOrder'],
                 'new'
             ),

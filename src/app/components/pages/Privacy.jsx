@@ -1,7 +1,6 @@
-/* eslint-disable import/no-import-module-exports */
-import React, { Component } from 'react';
+import React from 'react';
 
-class Privacy extends Component {
+class Privacy extends React.Component {
     render() {
         return (
             <div className="Privacy row">

@@ -1,27 +1,32 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import React from 'react';
+import { api } from '@blurtfoundation/blurtjs';
+import { fromJS } from 'immutable';
 import { Link } from 'react-router';
-import { connect } from 'react-redux';
-import { browserHistory } from 'react-router';
 import { numberWithCommas } from 'app/utils/StateFunctions';
 import tt from 'counterpart';
 
-export default class TagsIndex extends Component {
-    static propTypes = {
-        tagsAll: PropTypes.object.isRequired,
-    };
-
+export default class TagsIndex extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { order: props.order || 'name' };
+        this.state = {
+            order: props.order || 'name',
+            tags: [],
+        };
         this.onChangeSort = this.onChangeSort.bind(this);
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        const res =
-            this.props.tagsAll !== nextProps.tagsAll ||
-            this.state !== nextState;
+        const res = this.state !== nextState;
         return res;
+    }
+
+    async componentDidMount() {
+        try {
+            const res = await api.callAsync('condenser_api.get_trending_tags', [null,100]);
+            this.setState({ tags: fromJS(res) });
+        } catch (e) {
+            console.error('Error fetching trending tags', e.message);
+        }
     }
 
     onChangeSort = (e, order) => {
@@ -52,11 +57,11 @@ export default class TagsIndex extends Component {
     };
 
     render() {
-        const { tagsAll } = this.props;
-        //console.log('-- TagsIndex.render -->', tagsAll.toJS());
-        const { order } = this.state;
-        let tags = tagsAll;
+        const { order, tags } = this.state;
 
+        if (!tags || tags.length === 0) {
+            return null;
+        }
         const rows = tags
             .filter(
                 // there is a blank tag present, as well as some starting with #. filter them out.
@@ -75,12 +80,8 @@ export default class TagsIndex extends Component {
                                 {name}
                             </Link>
                         </td>
-                        <td>
-                            {numberWithCommas(tag.get('top_posts').toString())}
-                        </td>
-                        <td>
-                            {numberWithCommas(tag.get('comments').toString())}
-                        </td>
+                        <td>{numberWithCommas(tag.get('top_posts').toString())}</td>
+                        <td>{numberWithCommas(tag.get('comments').toString())}</td>
                         <td>{numberWithCommas(tag.get('total_payouts'))}</td>
                     </tr>
                 );
@@ -128,7 +129,6 @@ export default class TagsIndex extends Component {
 
 module.exports = {
     path: 'tags(/:order)',
-    component: connect((state) => ({
-        tagsAll: state.global.get('tags'),
-    }))(TagsIndex),
+    component: TagsIndex,
 };
+

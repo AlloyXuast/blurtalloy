@@ -1,10 +1,10 @@
-/* eslint-disable react/static-property-placement */
-import React, { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import CloseButton from 'app/components/elements/CloseButton';
 import Reveal from 'app/components/elements/Reveal';
 import { NotificationStack } from 'react-notification';
+import { OrderedSet } from 'immutable';
 import tt from 'counterpart';
 import * as userActions from 'app/redux/UserReducer';
 import * as appActions from 'app/redux/AppReducer';
@@ -15,7 +15,18 @@ import shouldComponentUpdate from 'app/utils/shouldComponentUpdate';
 import TermsAgree from 'app/components/modules/TermsAgree';
 import PostAdvancedSettings from 'app/components/modules/PostAdvancedSettings';
 
-class Modals extends Component {
+class Modals extends React.Component {
+    static defaultProps = {
+        username: '',
+        notifications: undefined,
+        removeNotification: () => {},
+        show_terms_modal: false,
+        show_promote_post_modal: false,
+        show_bandwidth_error_modal: false,
+        show_confirm_modal: false,
+        show_login_modal: false,
+        show_post_advanced_settings_modal: '',
+    };
     static propTypes = {
         show_login_modal: PropTypes.bool,
         show_confirm_modal: PropTypes.bool,
@@ -33,18 +44,6 @@ class Modals extends Component {
         notifications: PropTypes.object,
         show_terms_modal: PropTypes.bool,
         removeNotification: PropTypes.func,
-    };
-
-    static defaultProps = {
-        username: '',
-        notifications: undefined,
-        removeNotification: () => { },
-        show_terms_modal: false,
-        show_promote_post_modal: false,
-        show_bandwidth_error_modal: false,
-        show_confirm_modal: false,
-        show_login_modal: false,
-        show_post_advanced_settings_modal: '',
     };
 
     constructor() {
@@ -74,9 +73,9 @@ class Modals extends Component {
 
         const notifications_array = notifications
             ? notifications.toArray().map((n) => {
-                n.onClick = () => removeNotification(n.key);
-                return n;
-            })
+                  n.onClick = () => removeNotification(n.key);
+                  return n;
+              })
             : [];
 
         const buySteemPower = (e) => {
@@ -87,7 +86,6 @@ class Modals extends Component {
             //     'https://blocktrades.us/?input_coin_type=eth&output_coin_type=steem_power&receive_address=' +
             //     username;
         };
-
         const buyBlurt = (e) => {
             if (e && e.preventDefault) e.preventDefault();
             const new_window = window.open();
@@ -210,9 +208,9 @@ export default connect(
             show_terms_modal:
                 state.user.get('show_terms_modal') &&
                 state.routing.locationBeforeTransitions.pathname !==
-                '/tos.html' &&
+                    '/tos.html' &&
                 state.routing.locationBeforeTransitions.pathname !==
-                '/privacy.html',
+                    '/privacy.html',
             show_bandwidth_error_modal: state.transaction.getIn([
                 'errors',
                 'bandwidthError',
@@ -256,6 +254,7 @@ export default connect(
             dispatch(userActions.hidePostAdvancedSettings());
         },
         // example: addNotification: ({key, message}) => dispatch({type: 'ADD_NOTIFICATION', payload: {key, message}}),
-        removeNotification: (key) => dispatch(appActions.removeNotification({ key })),
+        removeNotification: (key) =>
+            dispatch(appActions.removeNotification({ key })),
     })
 )(Modals);

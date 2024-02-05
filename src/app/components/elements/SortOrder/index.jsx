@@ -1,10 +1,10 @@
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import tt from 'counterpart';
 import { Link, browserHistory } from 'react-router';
-
 import NativeSelect from 'app/components/elements/NativeSelect';
 import { RECOMMENDED_FOLLOW_ACCOUNT } from 'app/client_config';
+
 const SortOrder = ({ topic, sortOrder, horizontal, pathname }) => {
     /*
      * We do not sort the user feed by anything other than 'new'.
@@ -13,7 +13,7 @@ const SortOrder = ({ topic, sortOrder, horizontal, pathname }) => {
      * If a user lands on the 'feed' page and the sort order is displayed (e.g. a mobile user)
      * display the active sort as 'new'.
      */
-    let tag = topic;
+    let tag = topic || '';
     let sort = sortOrder;
 
     if (topic === 'feed') {
@@ -43,14 +43,14 @@ const SortOrder = ({ topic, sortOrder, horizontal, pathname }) => {
     const sorts = (tag) => {
         return [
             {
-                value: 'hot',
-                label: tt('main_menu.hot'),
-                link: `/hot/${tag}`,
-            },
-            {
                 value: 'trending',
                 label: tt('main_menu.trending'),
                 link: `/trending/${tag}`,
+            },
+            {
+                value: 'hot',
+                label: tt('main_menu.hot'),
+                link: `/hot/${tag}`,
             },
             {
                 value: 'created',
@@ -58,10 +58,15 @@ const SortOrder = ({ topic, sortOrder, horizontal, pathname }) => {
                 link: `/created/${tag}`,
             },
             {
-                value: 'dapps',
-                label: "DApps",
-                link: "/dapps"
-            }
+                value: 'muted',
+                label: tt('g.muted'),
+                link: `/muted/${tag}`,
+            },
+            {
+                value: 'payout',
+                label: tt('g.payout'),
+                link: `/payout/${tag}`,
+            },
             // {
             //     value: 'recommended',
             //     label: tt('g.recommended'),

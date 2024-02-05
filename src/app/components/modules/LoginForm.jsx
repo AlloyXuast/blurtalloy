@@ -20,8 +20,9 @@ import PdfDownload from 'app/components/elements/PdfDownload';
 import { extractLoginData } from 'app/utils/UserUtil';
 import { browserHistory } from 'react-router';
 
-class LoginForm extends Component {
+import { connect } from 'react-redux';
 
+class LoginForm extends Component {
     static propTypes = {
         // Steemit.
         loginError: PropTypes.string,
@@ -36,6 +37,7 @@ class LoginForm extends Component {
         super();
         const cryptoTestResult = runTests();
         let cryptographyFailure = false;
+        this.SignUp = this.SignUp.bind(this);
         if (cryptoTestResult !== undefined) {
             console.error(
                 'CreateAccount - cryptoTestResult: ',
@@ -68,10 +70,12 @@ class LoginForm extends Component {
     }
 
     componentDidMount() {
-        if (this.refs.username && !this.refs.username.value)
+        if (this.refs.username && !this.refs.username.value) {
             this.refs.username.focus();
-        if (this.refs.username && this.refs.username.value)
+        }
+        if (this.refs.username && this.refs.username.value) {
             this.refs.pw.focus();
+        }
 
         // fix login redirect for logged in user
         const data = localStorage.getItem('autopost2');
@@ -87,17 +91,6 @@ class LoginForm extends Component {
     }
 
     shouldComponentUpdate = shouldComponentUpdate(this, 'LoginForm');
-
-    GetKeychain() {
-        window.location.href = KEYCHAIN_URL;
-    }
-
-    SignUp = () => {
-        const onType =
-            document.getElementsByClassName('OpAction')[0].textContent;
-        serverApiRecordEvent('FreeMoneySignUp', onType);
-        window.location.href = SIGNUP_URL;
-    };
 
     initForm(props) {
         reactForm({
@@ -125,6 +118,22 @@ class LoginForm extends Component {
         });
     }
 
+    SignUp() {
+        const onType =
+            document.getElementsByClassName('OpAction')[0].textContent;
+        serverApiRecordEvent('FreeMoneySignUp', onType);
+        window.location.href = SIGNUP_URL;
+    }
+
+    GetKeychain() {
+        window.location.href = KEYCHAIN_URL;
+    }
+
+    useKeychainToggle = () => {
+        const { useKeychain } = this.state;
+        useKeychain.props.onChange(!useKeychain.value);
+    };
+
     saveLoginToggle = () => {
         const { saveLogin } = this.state;
         saveLoginDefault = !saveLoginDefault;
@@ -132,17 +141,12 @@ class LoginForm extends Component {
         saveLogin.props.onChange(saveLoginDefault); // change UI
     };
 
-    useKeychainToggle = () => {
-        const { useKeychain } = this.state;
-        useKeychain.props.onChange(!useKeychain.value);
-    };
-
     render() {
         if (!process.env.BROWSER) {
             return (
                 <div className="row">
                     <div className="column">
-                        <p>{'loading'}...</p>
+                        <p>loading...</p>
                     </div>
                 </div>
             );
@@ -202,7 +206,7 @@ class LoginForm extends Component {
         } = this.props;
         const { username, password, useKeychain, saveLogin } = this.state;
         const { submitting, valid, handleSubmit } = this.state.login;
-        const { usernameOnChange, onCancel /*qrReader*/ } = this;
+        const { usernameOnChange, onCancel /* qrReader */ } = this;
         const disabled = submitting || !valid;
         const opType = loginBroadcastOperation
             ? loginBroadcastOperation.get('type')
@@ -221,7 +225,7 @@ class LoginForm extends Component {
                 ? tt('loginform_jsx.login_to_post')
                 : tt('g.confirm_password');
         }
-        const title = postType ? postType : tt('g.login');
+        const title = postType || tt('g.login');
         const authType = /^vote|comment/.test(opType)
             ? tt('loginform_jsx.posting')
             : tt('loginform_jsx.active_or_owner');
@@ -394,7 +398,7 @@ class LoginForm extends Component {
                                 onChange={this.useKeychainToggle}
                                 disabled={submitting}
                             />
-                            &nbsp;{tt('loginform_jsx.use_keychain')}
+                            {tt('loginform_jsx.use_keychain')}
                         </label>
                     </div>
                 )}
@@ -411,7 +415,7 @@ class LoginForm extends Component {
                             onChange={this.saveLoginToggle}
                             disabled={submitting}
                         />
-                        &nbsp;{tt('loginform_jsx.keep_me_logged_in')}
+                        {tt('loginform_jsx.keep_me_logged_in')}
                     </label>
                 </div>
                 <div className="login-modal-buttons">
@@ -419,7 +423,7 @@ class LoginForm extends Component {
                     <button
                         type="submit"
                         disabled={submitting || disabled}
-                        className="button"
+                        className="button block-button"
                     >
                         {submitLabel}
                     </button>
@@ -450,7 +454,7 @@ class LoginForm extends Component {
                         username: username.value,
                         password: password.value,
                         saveLogin: saveLogin.value,
-                        loginBroadcastOperation: loginBroadcastOperation,
+                        loginBroadcastOperation,
                     };
                     reallySubmit(data, afterLoginRedirectToWelcome);
                 })}
@@ -468,6 +472,7 @@ class LoginForm extends Component {
                     <a
                         href={`${walletUrl}/@${username.value}/permissions`}
                         target="_blank"
+                        rel="noopener noreferrer"
                     >
                         {tt('loginform_jsx.login_warning_link_text')}
                     </a>
@@ -477,7 +482,7 @@ class LoginForm extends Component {
                     <button
                         type="submit"
                         disabled={submitting}
-                        className="button"
+                        className="button block-button"
                         onClick={(e) => {
                             e.preventDefault();
                             console.log('Login\thideWarning');
@@ -512,8 +517,9 @@ if (process.env.BROWSER) {
 function urlAccountName() {
     let suggestedAccountName = '';
     const account_match = window.location.hash.match(/account\=([\w\d\-\.]+)/);
-    if (account_match && account_match.length > 1)
+    if (account_match && account_match.length > 1) {
         suggestedAccountName = account_match[1];
+    }
     return suggestedAccountName;
 }
 
@@ -530,8 +536,6 @@ function checkPasswordChecksum(password) {
 
     return PrivateKey.isWif(wif);
 }
-
-import { connect } from 'react-redux';
 export default connect(
     // mapStateToProps
     (state) => {
@@ -555,8 +559,9 @@ export default connect(
         const loginDefault = state.user.get('loginDefault');
         if (loginDefault) {
             const { username, authType } = loginDefault.toJS();
-            if (username && authType)
+            if (username && authType) {
                 initialValues.username = username + '/' + authType;
+            }
         } else if (initialUsername) {
             initialValues.username = initialUsername;
         }

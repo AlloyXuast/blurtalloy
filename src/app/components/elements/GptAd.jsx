@@ -1,6 +1,7 @@
-import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+
+import PropTypes from 'prop-types';
 
 class GptAd extends Component {
     constructor(props) {
@@ -68,8 +69,7 @@ GptAd.propTypes = {
     enabled: PropTypes.bool.isRequired,
     type: PropTypes.oneOf(['Bidding', 'Category', 'Basic', 'Freestar']),
     tags: PropTypes.arrayOf(PropTypes.string),
-    // bannedTags: PropTypes.arrayOf(PropTypes.string).isRequired,
-    bannedTags: PropTypes.arrayOf(PropTypes.string),
+    bannedTags: PropTypes.arrayOf(PropTypes.string).isRequired,
 };
 
 GptAd.defaultProps = {

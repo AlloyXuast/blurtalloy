@@ -1,5 +1,6 @@
 .Markdown {
     font-family: 'Source Serif Pro', serif;
+    // font-family: 'Nunito', sans-serif;
     font-size: 120%;
 
     line-height: 150%;
@@ -9,6 +10,7 @@
 .Markdown.MarkdownViewer--small {
     font-family: inherit;
     font-size: 110%;
+    // font-weight: 300;
 
     img {
         max-width: 400px;

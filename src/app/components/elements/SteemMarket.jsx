@@ -1,46 +1,36 @@
-/* eslint-disable max-classes-per-file */
-import { Component } from 'react';
+import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 import { Sparklines, SparklinesLine } from 'react-sparklines';
 
 class Coin extends Component {
+    constructor(props) {
+        super(props);
+        this.onPointMouseMove = this.onPointMouseMove.bind(this);
+        this.onPointMouseOut = this.onPointMouseOut.bind(this);
+    }
+
     componentDidMount() {
-        this.coinRef.querySelectorAll('circle').forEach((circle) => {
+        const node = ReactDOM.findDOMNode(this.refs.coin);
+        node.querySelectorAll('circle').forEach((circle) => {
             circle.setAttribute('r', '8');
             circle.style.fillOpacity = 0;
             circle.style.cursor = 'pointer';
             circle.addEventListener('mouseover', this.onPointMouseMove);
         });
-        this.coinRef.querySelectorAll('polyline').forEach((circle) => {
+        node.querySelectorAll('polyline').forEach((circle) => {
             circle.style.pointerEvents = 'none';
         });
-        this.coinRef.addEventListener('mouseout', this.onPointMouseOut);
+        node.addEventListener('mouseout', this.onPointMouseOut);
     }
 
     componentWillUnmount() {
-        this.coinRef.querySelectorAll('circle').forEach((circle) => {
+        const node = ReactDOM.findDOMNode(this.refs.coin);
+        node.querySelectorAll('circle').forEach((circle) => {
             circle.removeEventListener('mouseover', this.onPointMouseMove);
         });
-        this.coinRef.removeEventListener('mouseout', this.onPointMouseOut);
+        node.removeEventListener('mouseout', this.onPointMouseOut);
     }
-
-    onPointMouseMove = e => {
-        const caption = this.coinRef.querySelector('.caption');
-        const circle = e.currentTarget;
-        const circles = this.coinRef.querySelectorAll('circle');
-        const index = Array.prototype.indexOf.call(circles, circle);
-        const points = this.props.coin.get('timepoints');
-        const point = points.get(index);
-        const priceUsd = parseFloat(point.get('price_usd')).toFixed(2);
-        const timepoint = point.get('timepoint');
-        const time = new Date(timepoint).toLocaleString();
-        caption.innerText = `$${priceUsd} ${time}`;
-    };
-
-    onPointMouseOut = e => {
-        const caption = this.coinRef.querySelector('.caption');
-        caption.innerText = '';
-    };
 
     render() {
         const color = this.props.color;
@@ -53,7 +43,7 @@ class Coin extends Component {
             .map((point) => parseFloat(point.get('price_usd')))
             .toJS();
         return (
-            <div ref={coin => this.coinRef = coin} className="coin">
+            <div ref="coin" className="coin">
                 <div className="chart">
                     <Sparklines data={pricesUsd}>
                         <SparklinesLine
@@ -74,6 +64,26 @@ class Coin extends Component {
                 </div>
             </div>
         );
+    }
+
+    onPointMouseMove(e) {
+        const node = ReactDOM.findDOMNode(this.refs.coin);
+        const caption = node.querySelector('.caption');
+        const circle = e.currentTarget;
+        const circles = node.querySelectorAll('circle');
+        const index = Array.prototype.indexOf.call(circles, circle);
+        const points = this.props.coin.get('timepoints');
+        const point = points.get(index);
+        const priceUsd = parseFloat(point.get('price_usd')).toFixed(2);
+        const timepoint = point.get('timepoint');
+        const time = new Date(timepoint).toLocaleString();
+        caption.innerText = `$${priceUsd} ${time}`;
+    }
+
+    onPointMouseOut(e) {
+        const node = ReactDOM.findDOMNode(this.refs.coin);
+        const caption = node.querySelector('.caption');
+        caption.innerText = '';
     }
 }
 

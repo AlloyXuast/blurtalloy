@@ -4,6 +4,7 @@ import {
 } from 'shared/HtmlReady'; // the only allowable title attributes for div and a tags
 
 import { validateIframeUrl as validateEmbbeddedPlayerIframeUrl } from 'app/components/elements/EmbeddedPlayers';
+
 export const noImageText = '(Image not shown due to low ratings)';
 export const allowedTags = `
     div, iframe, del,
@@ -52,11 +53,8 @@ export default ({
     transformTags: {
         iframe: (tagName, attribs) => {
             const srcAtty = attribs.src;
-            const {
-                validUrl,
-                useSandbox,
-                sandboxAttributes,
-            } = validateEmbbeddedPlayerIframeUrl(srcAtty);
+            const { validUrl, useSandbox, sandboxAttributes } =
+                validateEmbbeddedPlayerIframeUrl(srcAtty);
 
             if (validUrl === true) {
                 const iframe = {

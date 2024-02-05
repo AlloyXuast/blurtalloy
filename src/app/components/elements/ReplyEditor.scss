@@ -124,6 +124,18 @@
 .Dropdown__root___1B9ta {
     color: black !important;
 }
+
+.EditFooter {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    flex-direction: column;
+    .button {
+        width: 100%;
+    }
+}
+
 /* Medium only */
 @media screen and (min-width: 768px) {
     .SubmitPost > .ReplyEditor {
@@ -145,6 +157,13 @@
                 max-height: calc(100vh - 150px);
                 overflow-y: scroll;
             }
+        }
+    }
+
+    .EditFooter {
+        flex-direction: row;
+        .button {
+            width: fit-content;
         }
     }
 }
@@ -180,5 +199,4 @@
         }
     }
 }
-    
-.mce-notification {display: none !important;}
+

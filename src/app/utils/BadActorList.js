@@ -1,4 +1,7 @@
 const list = `
+lesmann
+evegrace
+hanculture
 `
     .trim()
     .split('\n');

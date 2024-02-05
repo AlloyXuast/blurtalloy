@@ -9,6 +9,7 @@ const startKoa = require('./utils/start-koa');
 module.exports = {
     ...baseConfig,
     devtool: 'cheap-module-eval-source-map',
+    // devtool: 'eval-cheap-module-source-map',
     output: {
         ...baseConfig.output,
         publicPath: '/assets/',

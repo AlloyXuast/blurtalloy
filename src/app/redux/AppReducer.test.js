@@ -2,7 +2,7 @@ import { Map, OrderedMap, getIn } from 'immutable';
 
 import reducer, {
     defaultState,
-    steemApiError,
+    blurtApiError,
     fetchDataBegin,
     fetchDataEnd,
     addNotification,
@@ -63,7 +63,7 @@ describe('App reducer', () => {
     });
     it('should return correct state for a BLURT_API_ERROR action', () => {
         const initial = reducer();
-        const out = reducer(initial, steemApiError());
+        const out = reducer(initial, blurtApiError());
         expect(out).toEqual(initial);
     });
     it('should return correct state for a FETCH_DATA_BEGIN action', () => {

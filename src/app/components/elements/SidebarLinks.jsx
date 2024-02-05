@@ -1,55 +1,37 @@
+/* global $STM_Config */
+import React from 'react';
 import tt from 'counterpart';
+import { Link } from 'react-router';
 
-const SidebarLinks = ({ username }) => (
-    <div className="c-sidebar__module">
+const SidebarLinks = ({ username }) => {
+
+    const userLinks = [
+        { text: tt('g.my_feed'), link: `/@${username}/feed` , type:'link'},
+        { text: tt('g.my_blog'), link: `/@${username}` , type:'link'},
+        { text: tt('g.my_notifications'), link: `/@${username}/notifications` , type:'link'},
+        { text: tt('g.my_wallet'), link: `${$STM_Config.wallet_url}/@` + username + '' , type:'href'},
+        { text: tt('g.my_explorer'), link: 'https://blocks.blurtwallet.com/#/@' + username , type:'href'},
+    ]
+
+    return (<div className="c-sidebar__module">
         <div className="c-sidebar__header">
             <h3 className="c-sidebar__h3">{tt('g.links')}</h3>
         </div>
         <div className="c-sidebar__content">
             <ul className="c-sidebar__list">
-                <li className="c-sidebar__list-item" key="feed">
-                    <a className="c-sidebar__link" href={`/@${username}/feed`}>
-                        {tt('g.my_feed')}
-                    </a>
-                </li>
-
-                <li className="c-sidebar__list-item">
-                    <a className="c-sidebar__link" href={'/@' + username}>
-                        {tt('g.my_blog')}
-                    </a>
-                </li>
-                <li className="c-sidebar__list-item">
-                    <a
-                        className="c-sidebar__link"
-                        href={'/@' + username + '/notifications'}
-                    >
-                        {tt('g.my_notifications')}
-                    </a>
-                </li>
-                <li className="c-sidebar__list-item">
-                    <a
-                        className="c-sidebar__link"
-                        href={'https://blurtwallet.alloyxuast.co.uk/@' + username + ''}
-                    >
-                        {tt('g.my_wallet')}
-                    </a>
-                </li>
-                <li className="c-sidebar__list-item">
-                    <a
-                        className="c-sidebar__link"
-                        href={'https://blocks.blurtwallet.com/#/@' + username}
-                    >
-                        {tt('g.my_explorer')}
-                    </a>
-                </li>
-                <li className="c-sidebar__list-item">
-                    {/* <a className="c-sidebar__link" href="/@steemitblog"> */}
-                    {/*    {tt('g.read_offical_blog')} */}
-                    {/* </a> */}
-                </li>
+                {username && (userLinks.map((element, index) => (
+                    <li className="c-sidebar__list-item" key={`${element.text}-${index}`} >
+                        {element.type === 'link'
+                            ? (<Link className="c-sidebar__link" to={element.link}>
+                                {element.text}
+                            </Link>)
+                            : (<a className="c-sidebar__link" href={element.link}>
+                                {element.text}
+                        </a>)}
+                </li>)))}
             </ul>
         </div>
-    </div>
-);
+    </div>)
+};
 
 export default SidebarLinks;

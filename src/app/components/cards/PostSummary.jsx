@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router';
 import TimeAgoWrapper from 'app/components/elements/TimeAgoWrapper';
@@ -21,8 +21,9 @@ import Userpic, { avatarSize } from 'app/components/elements/Userpic';
 import { SIGNUP_URL } from 'shared/constants';
 import { hasNsfwTag } from 'app/utils/StateFunctions';
 import { repLog10, parsePayoutAmount } from 'app/utils/ParsersAndFormatters';
+import readingTime from 'reading-time';
 
-class PostSummary extends Component {
+class PostSummary extends React.Component {
     static propTypes = {
         post: PropTypes.string.isRequired,
         pending_payout: PropTypes.string.isRequired,
@@ -33,11 +34,13 @@ class PostSummary extends Component {
         onClose: PropTypes.func,
         thumbSize: PropTypes.string,
         nsfwPref: PropTypes.string,
+        nsfWPostsList: PropTypes.array,
     };
 
     constructor() {
         super();
         this.state = { revealNsfw: false };
+        this.onRevealNsfw = this.onRevealNsfw.bind(this);
     }
 
     shouldComponentUpdate(props, state) {
@@ -48,18 +51,20 @@ class PostSummary extends Component {
             props.username !== this.props.username ||
             props.nsfwPref !== this.props.nsfwPref ||
             props.blogmode !== this.props.blogmode ||
-            state.revealNsfw !== this.state.revealNsfw
+            state.revealNsfw !== this.state.revealNsfw ||
+            props.nsfWPostsList !== this.props.nsfWPostsList
         );
     }
 
-    onRevealNsfw = e => {
+    onRevealNsfw(e) {
         e.preventDefault();
         this.setState({ revealNsfw: true });
-    };
+    }
 
     render() {
-        const { thumbSize, ignore } = this.props;
-        const { post, content, featured, promoted, onClose } = this.props;
+        const { thumbSize, ignore, hideCategory } = this.props;
+        const { post, content, featured, promoted, onClose, nsfWPostsList } =
+            this.props;
         const { account } = this.props;
         if (!content) return null;
 
@@ -101,19 +106,31 @@ class PostSummary extends Component {
 
         const { gray } = content.get('stats', Map()).toJS();
         const authorRepLog10 = repLog10(content.get('author_reputation'));
-        const isNsfw = hasNsfwTag(content);
+        // if user himself marked his post as NSFW
+        let isNsfw = hasNsfwTag(content);
+        // for explicit check in case user have not marked post NSFW
+        if (isNsfw !== true) {
+            const contentId = content.get('post_id');
+            if (contentId &&
+                nsfWPostsList.filter((nsfwPost) => nsfwPost.post_id === contentId)
+                    .length > 0
+            ) {
+                isNsfw = true;
+            }
+        }
+
         const special = content.get('special');
         const p = extractContent(immutableAccessor, content);
         const desc = p.desc;
 
-        //const archived = content.get('cashout_time') === '1969-12-31T23:59:59'; // TODO: audit after HF17. #1259
+        // const archived = content.get('payout_at') === '1969-12-31T23:59:59'; // TODO: audit after HF17. #1259
 
         let post_url;
         let title_text;
         let comments_url;
 
         if (content.get('depth') > 0) {
-            title_text = tt('g.re_to', { topic: content.get('root_title') });
+            title_text = content.get('root_title') ? tt('g.re_to', { topic: content.get('root_title') }) : content.get('title');
             post_url =
                 '/' +
                 content.get('category') +
@@ -140,7 +157,7 @@ class PostSummary extends Component {
                     {title_text}
                 </Link>
                 {featured && <span className="FeaturedTag">Featured</span>}
-                {promoted && <span className="PromotedTag">Promoted</span>}
+                {promoted && <span className="PromotedTag">Sponsored</span>}
             </h2>
         );
 
@@ -149,6 +166,7 @@ class PostSummary extends Component {
             <span className="vcard">
                 <Userpic account={p.author} />
                 <Author
+                    post={content}
                     author={p.author}
                     authorRepLog10={authorRepLog10}
                     follow={false}
@@ -161,7 +179,6 @@ class PostSummary extends Component {
                 </Link>
             </span>
         );
-
         // New Post Summary heading
         const summary_header = (
             <div className="articles__summary-header">
@@ -179,18 +196,20 @@ class PostSummary extends Component {
                     <div className="user__col user__col--right">
                         <span className="user__name">
                             <Author
+                                post={content}
                                 author={p.author}
                                 authorRepLog10={authorRepLog10}
                                 follow={false}
                                 mute={false}
                             />
                         </span>
-
-                        <span className="articles__tag-link">
-                            {tt('g.in')}&nbsp;
-                            <TagList post={p} single />
-                            &nbsp;•&nbsp;
-                        </span>
+                        {hideCategory || (
+                            <span className="articles__tag-link">
+                                {tt('g.in')}&nbsp;
+                                <TagList post={p} single />
+                                &nbsp;•&nbsp;
+                            </span>
+                        )}
                         <Link className="timestamp__link" to={post_url}>
                             <span className="timestamp__time">
                                 <TimeAgoWrapper
@@ -198,6 +217,14 @@ class PostSummary extends Component {
                                     className="updated"
                                 />
                             </span>
+                        </Link>
+                        <Link className="timestamp__link" to={post_url}>
+                            <span className="timestamp__time">
+                            &nbsp;•&nbsp; {readingTime(content.get('body')).text}
+                            </span>
+                            {content.getIn(['stats', 'is_pinned'], false) && (
+                                <span className="FeaturedTag">{tt('g.pinned')}</span>
+                            )}
                         </Link>
                     </div>
 
@@ -215,20 +242,20 @@ class PostSummary extends Component {
             </div>
         );
 
-        const content_footer = (
-            <div className="PostSummary__footer">
-                <Voting post={post} showList={true} />
-                <VotesAndComments post={post} commentsLink={comments_url} />
-                <span className="PostSummary__time_author_category">
-                    <Reblog
-                        author={p.author}
-                        permlink={p.permlink}
-                        parent_author={p.parent_author}
-                    />
-                    <span className="show-for-medium">{author_category}</span>
-                </span>
-            </div>
-        );
+        // const content_footer = (
+        //     <div className="PostSummary__footer">
+        //         <Voting post={post} showList />
+        //         <VotesAndComments post={post} commentsLink={comments_url} />
+        //         <span className="PostSummary__time_author_category">
+        //             <Reblog
+        //                 author={p.author}
+        //                 permlink={p.permlink}
+        //                 parent_author={p.parent_author}
+        //             />
+        //             <span className="show-for-medium">{author_category}</span>
+        //         </span>
+        //     </div>
+        // );
 
         const pending_payout_parsed = parsePayoutAmount(
             this.props.pending_payout
@@ -242,7 +269,7 @@ class PostSummary extends Component {
 
         const summary_footer = (
             <div className="articles__summary-footer">
-                <Voting post={post} showList={true} />
+                <Voting post={post} showList />
                 <VotesAndComments post={post} commentsLink={comments_url} />
                 <span>
                     <b style={{ color: '#F2652D' }}>${payoutValueInDollar}</b>
@@ -268,7 +295,7 @@ class PostSummary extends Component {
                 // user wishes to be warned, and has not revealed this post
                 return (
                     <article
-                        className={'PostSummary hentry'}
+                        className="PostSummary hentry"
                         itemScope
                         itemType="http://schema.org/blogPost"
                     >
@@ -319,7 +346,7 @@ class PostSummary extends Component {
             // which has the 256x512 for whatever the large breakpoint is where the list layout is used
             // and the 768 for lower than that
 
-            const blogSize = proxifyImageUrl(p.image_link, '640x480').replace(
+            const blogSize = proxifyImageUrl(p.image_link, '800x640').replace(
                 / /g,
                 '%20'
             );
@@ -328,6 +355,7 @@ class PostSummary extends Component {
                 thumb = (
                     <span className="articles__feature-img-container">
                         <img
+                            style={{ minWidth: '310px !important' }}
                             className="articles__feature-img"
                             src={blogSize}
                             alt="thumbnail"
@@ -366,9 +394,6 @@ class PostSummary extends Component {
             <div className="articles__summary">
                 {reblogged_by}
                 {summary_header}
-                <div className="articles__content-block articles__content-block--text">
-                    {content_title}
-                </div>
                 <div
                     className={
                         'articles__content hentry' +
@@ -379,13 +404,18 @@ class PostSummary extends Component {
                     itemType="http://schema.org/blogPost"
                 >
                     {thumb ? (
-                        <div className="articles__content-block articles__content-block--img">
+                        <div className="articles__content-block articles__content-block--img"
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'center'
+                            }}>
                             <Link className="articles__link" to={post_url}>
                                 {thumb}
                             </Link>
                         </div>
                     ) : null}
                     <div className="articles__content-block articles__content-block--text">
+                        {content_title}
                         {content_body}
                         {this.props.blogmode ? null : summary_footer}
                     </div>
@@ -398,29 +428,36 @@ class PostSummary extends Component {
 
 export default connect(
     (state, props) => {
-        const { post } = props;
+        const { post, hideCategory } = props;
         const content = state.global.get('content').get(post);
-        let pending_payout = 0;
-        let total_payout = 0;
+        let pending_payout = "0.000 BLURT";
+        let total_payout = "0.000 BLURT";
         if (content) {
             pending_payout = content.get('pending_payout_value');
-            total_payout = content.get('total_payout_value');
+            if (content.get('total_payout_value')){
+                total_payout = parsePayoutAmount(content.get('total_payout_value'))
+            }
+            if (content.get('author_payout_value') && content.get('curator_payout_value')) {
+                total_payout = parsePayoutAmount(content.get('author_payout_value')) + parsePayoutAmount(content.get('curator_payout_value'));
+            }
         }
+        const nsfWPostsList = state.offchain.get('nsfw').toJS().nsfw;
+
         return {
             post,
             content,
-            pending_payout: pending_payout
-                ? pending_payout.toString()
-                : pending_payout,
-            total_payout: total_payout ? total_payout.toString() : total_payout,
+            hideCategory,
+            pending_payout: pending_payout ? pending_payout.toString() : pending_payout,
+            total_payout: typeof total_payout === 'number' ? total_payout.toString() : total_payout,
             username:
                 state.user.getIn(['current', 'username']) ||
                 state.offchain.get('account'),
             blogmode:
                 state.app.getIn(['user_preferences', 'blogmode']) === undefined
-                    ? true
+                    ? false
                     : state.app.getIn(['user_preferences', 'blogmode']),
             pricePerBlurt: state.global.getIn(['props', 'price_per_blurt']),
+            nsfWPostsList,
         };
     },
 

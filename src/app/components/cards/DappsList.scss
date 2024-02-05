@@ -1,20 +1,43 @@
 .categories {
     .panel {
         border: black 2px;
-        background-color: #c61025;
-        color: whitesmoke;
+        background-color: #ff5a00;
+        color: #fafbfc;
         border-radius: 5em;
         padding: 18px 0;
     }
 
     .single-category {
-        background-color: #f4f4f4;
+        background-color: #fafbfc;
         // color: whitesmoke;
-        border-radius: 40px;
+        border-radius: 15px;
         margin-bottom: 50px;
+        background: $color-black;
+        background: -moz-linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(17, 22, 26) 75%, rgba(0,0,0,1) 100%);
+        background: -webkit-linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(17,22,26,1) 75%, rgba(0,0,0,1) 100%);
+        background: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(17,22,26,1) 75%, rgba(0,0,0,1) 100%);
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#000000",endColorstr="#000000",GradientType=1);
+
+        h4 {
+            color: $color-white;
+        }
     }
 
     .single-category .button {
-        color: papayawhip;
+        color: $color-white;
+        width: 80%;
+        padding: 1rem;
+        margin-bottom: 2.5rem;
+        color: #ff5a00;
+        border: 1px solid #ff5a00;
+        background: transparent;
+        text-shadow: none;
+    }
+
+    .single-category .button:hover {
+        color: $color-white;
+        background: #ff5a00;
+        text-shadow: none;
+        border: 1px solid #ff5a00;
     }
 }

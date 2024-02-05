@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import shouldComponentUpdate from 'app/utils/shouldComponentUpdate';
@@ -11,7 +11,7 @@ import { repLog10 } from 'app/utils/ParsersAndFormatters';
 
 const MINIMUM_REPUTATION = 15;
 
-export class Memo extends Component {
+export class Memo extends React.Component {
     static propTypes = {
         text: PropTypes.string,
         username: PropTypes.string,
@@ -30,11 +30,6 @@ export class Memo extends Component {
         };
     }
 
-    onRevealMemo = (e) => {
-        e.preventDefault();
-        this.setState({ revealMemo: true });
-    };
-
     decodeMemo(memo_private, text) {
         try {
             return memo.decode(memo_private, text);
@@ -43,6 +38,11 @@ export class Memo extends Component {
             return 'Invalid memo';
         }
     }
+
+    onRevealMemo = (e) => {
+        e.preventDefault();
+        this.setState({ revealMemo: true });
+    };
 
     render() {
         const { decodeMemo } = this;

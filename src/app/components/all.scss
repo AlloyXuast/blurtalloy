@@ -17,6 +17,7 @@
 @import './elements/FormattedAsset';
 @import './elements/ReplyEditor';
 @import './elements/DropdownMenu';
+@import "./elements/ElasticSearchInput/styles";
 @import './elements/VerticalMenu';
 @import './elements/HorizontalMenu';
 @import './elements/VotesAndComments';
@@ -37,11 +38,12 @@
 @import './elements/SanitizedLink/styles';
 @import './elements/HelpTip/styles';
 @import './elements/Dropdown';
+@import "./elements/PostCategoryHeader";
+@import "./elements/PostCategoryBanner";
+@import './elements/FlagButton';
 @import './elements/Notices';
-@import './elements/Contests';
 @import './elements/GoogleAd';
 @import './elements/GptAd';
-@import './elements/Reveal';
 
 // modules
 @import './modules/Header/styles';
@@ -63,3 +65,5 @@
 @import './pages/Welcome';
 @import './pages/About';
 @import './pages/Dapps';
+@import './pages/CommunitiesIndex';
+@import './pages/CommunityRoles';

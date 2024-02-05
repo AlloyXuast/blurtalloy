@@ -13,6 +13,18 @@
     }
 }
 
+.nsfw-flag {
+    color: $color-red;
+    border: 1px solid $color-red;
+    font-size: 75%;
+    border-radius: 10px;
+    font-weight: normal;
+    // font-family: 'Nunito';
+    margin: 0 0.1rem;
+    padding: 2px 5px;
+    margin-right: 5px;
+}
+
 .Comment__Userpic {
     float: left;
     position: relative;

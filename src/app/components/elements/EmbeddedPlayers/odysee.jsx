@@ -3,7 +3,6 @@ const regex = {
 };
 
 export default regex;
-
 export const sandboxConfig = {
     useSandbox: true,
     sandboxAttributes: ['allow-scripts', 'allow-same-origin', 'allow-popups'],

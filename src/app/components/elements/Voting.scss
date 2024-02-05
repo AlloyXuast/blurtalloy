@@ -18,9 +18,9 @@
     path {
         fill: $dark-gray;
     }
-    circle {
-        stroke: $dark-gray;
-    }
+    // circle {
+    //     stroke: $dark-gray;
+    // }
     > a:hover path {
         fill: $black;
     }
@@ -76,16 +76,16 @@
             fill: themed('textColorAccent');
         }
     }
-    circle {
-        @include themify($themes) {
-            stroke: themed('textColorAccent');
-        }
-    }
+    // circle {
+    //     @include themify($themes) {
+    //         stroke: themed('textColorAccent');
+    //     }
+    // }
     // exclude small devices
     @media screen and (min-width: 39.9375em) {
         .Icon:hover {
-            box-shadow: 0 0 0 rgba(75, 162, 242, 1);
-            animation: pulse 2s infinite;
+            box-shadow: 0 0 0 rgb(232, 3, 68);
+            animation: heartbeat 2s infinite;
         }
     }
     .close-button {
@@ -98,31 +98,43 @@
         left: -26px;
         @media screen and (max-width: 47.499em) {
             left: 0;
-        }       
+        }
     }
 }
 
 .Voting__button-up > a:hover,
-a.confirm_weight:hover {
-    path {
-        fill: #fff;
-    }
-    circle {
-        @include themify($themes) {
-            fill: themed('colorAccent');
-            stroke: themed('colorAccent');
-        }
-    }
-    svg {
-        background-size: contain;
-        border-radius: 50%;
-    }
+a.confirm_weight:hover,a:focus, a.confirm_weight:focus {
+    // filter: red;
+    // filter: invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
+    background-image: ('assets/icons/heart.svg');
+    // path {
+    //     fill: red;
+    //     stroke: black;
+    // }
+    // circle {
+    //     @include themify($themes) {
+    //         fill: themed('colorAccent');
+    //         stroke: themed('colorAccent');
+    //     }
+    // }
+    // svg {
+    //     background-size: cover;
+    //     background-image: ('../../assets/icons/heart.svg');
+    //     // background-color: red;
+    //     // border-radius: 90%;
+    //     color: red;
+    //     fill:red;
+    //     path {
+    //         fill: red;
+    //         color: black;
+    //     }
+    // }
 }
 
 .Voting__button-up.votingUp {
     padding-right: 0.5rem;
     svg {
-        border: 1px solid $color-orange;
+        border: 1px solid red;
         border-radius: 50%;
         border-right-color: transparent;
         border-top-color: transparent;
@@ -151,55 +163,58 @@ a.confirm_weight:hover {
     a path {
         fill: #f99;
     }
-    a circle {
-        stroke: #f99;
-    }
-    a:hover circle {
-        fill: #f66;
-    }
+    // a circle {
+    //     stroke: #f99;
+    // }
+    // a:hover circle {
+    //     fill: #f66;
+    // }
     a:hover path {
-        fill: #fff;
+        fill: #f99;
     }
 
     &.Voting__button--downvoted {
         a path {
             fill: #fff;
         }
-        a circle {
-            fill: #f99;
-        }
-        a:hover circle {
-            fill: #f66;
-        }
+        // a circle {
+        //     fill: #f99;
+        // }
+        // a:hover circle {
+        //     fill: #f66;
+        // }
     }
 }
 
 .Voting__button--upvoted {
     .Icon:hover {
-        animation: none !important;
+        animation:  heartbeat 2s infinite !important;
     }
     path {
-        fill: #fff !important;
+        fill: red !important;
     }
 }
 
-.Voting__button--upvoted circle {
-    @include themify($themes) {
-        fill: themed('colorAccent');
-        stroke: themed('colorAccent');
-    }
-}
+// .Voting__button--upvoted circle {
+//     @include themify($themes) {
+//         fill: themed('colorAccent');
+//         stroke: themed('colorAccent');
+//     }
+// }
 
 .Voting__button--upvoted a:hover path {
-    fill: #fff !important;
+    // fill: rgb(223, 208, 209) !important;
+    // border: red !important;
+    // stroke: red !important;
+    // animation: heartbeat 2s;
 }
 
-.Voting__button--upvoted a:hover circle {
-    @include themify($themes) {
-        fill: themed('colorAccentHover');
-        stroke: themed('colorAccentHover');
-    }
-}
+// .Voting__button--upvoted a:hover circle {
+//     @include themify($themes) {
+//         fill: themed('colorAccentHover');
+//         stroke: themed('colorAccentHover');
+//     }
+// }
 
 .Voting__button--downvoted path {
     fill: $color-red;
@@ -304,9 +319,9 @@ a.confirm_weight:hover {
         line-height: 2.6rem;
     }
     .voting-power-display {
-        float: right;
+        // float: right;
         color: $dark-gray;
-        margin-top: 30px;
+        // margin-top: 30px;
     }
 
     a.confirm_weight {
@@ -416,7 +431,7 @@ a.confirm_weight:hover {
 
 .weight-container {
     min-width: 300px;
-    width: 90%;
+    width: 60%;
     margin: 0 auto;
     padding-bottom: 2px;
 }
@@ -452,7 +467,7 @@ a.confirm_weight:hover {
     background-color: #f2652e;
 }
 #btn_group {
-    margin-left: 90px;
+    margin-left: 60px;
 }
 #btn_group button {
     border-radius: 50%;
@@ -491,15 +506,13 @@ a.confirm_weight:hover {
     }
 }
 
-
-
 .votersListModal .reveal > .close-button {
     margin-top: 1rem;
     font-size: 2rem;
 }
 
 @media screen and (max-height: 768px) {
-    // .votersListModal .reveal 
+    // .votersListModal .reveal
     .voters-list > ul {
         overflow-y: auto;
         height: 120px;
@@ -512,7 +525,7 @@ a.confirm_weight:hover {
 }
 
 @media screen and (min-height: 769px) {
-    // .votersListModal .reveal 
+    // .votersListModal .reveal
     .voters-list > ul {
         overflow-y: auto;
         height: 140px;
@@ -542,4 +555,58 @@ a.confirm_weight:hover {
         margin-left: auto;
         top: 30%;
     }
+}
+
+a.confirm_weight:focus span.Icon.heart-outline,
+a.confirm_weight:hover span.Icon.heart-outline {
+    display: none !important;
+}
+
+a.confirm_weight:hover span.Icon.heart,
+a.confirm_weight:focus span.Icon.heart {
+    display: inline-block !important;
+}
+
+a.confirm_weight span.Icon.heart {
+    display: none !important;
+}
+
+@keyframes heartbeat
+{
+  0%
+  {
+    transform: scale( .85 );
+  }
+  20%
+  {
+    transform: scale( 1.2 );
+  }
+  40%
+  {
+    transform: scale( .85 );
+  }
+  60%
+  {
+    transform: scale( 1.2 );
+  }
+  80%
+  {
+    transform: scale( .85 );
+  }
+  100%
+  {
+    transform: scale( .85 );
+  }
+}
+
+.Voting__button--upvoted:hover a#upvote_button span.Icon.heart {
+    display: none !important;
+}
+
+.Voting__button--upvoted a#upvote_button span.Icon.heart-broken {
+    display: none !important;
+}
+
+.Voting__button--upvoted:hover a#upvote_button span.Icon.heart-broken {
+    display: inline-block !important;
 }

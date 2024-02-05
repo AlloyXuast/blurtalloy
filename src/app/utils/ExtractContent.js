@@ -27,6 +27,7 @@ export default function extractContent(get, content) {
         title,
         created,
         net_rshares,
+        community_title,
         children,
     } = get(
         content,
@@ -39,6 +40,7 @@ export default function extractContent(get, content) {
         'title',
         'created',
         'net_rshares',
+        'community_title',
         'children'
     );
     const author_link = '/@' + get(content, 'author');
@@ -144,5 +146,6 @@ export default function extractContent(get, content) {
         desc_complete,
         body,
         pending_payout,
+        community_title
     };
 }

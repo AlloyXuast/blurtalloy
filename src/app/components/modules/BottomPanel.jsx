@@ -1,15 +1,15 @@
-import { Component } from 'react';
+import React from 'react';
 import CloseButton from 'app/components/elements/CloseButton';
 import PropTypes from 'prop-types';
 
-export default class BottomPanel extends Component {
+export default class BottomPanel extends React.Component {
     static propTypes = {
-        children: PropTypes.objectOf(PropTypes.object),
+        children: PropTypes.object,
         visible: PropTypes.bool,
         hide: PropTypes.func.isRequired,
     };
 
-    UNSAFE_componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps) {
         if (nextProps.visible) {
             document.addEventListener('click', this.props.hide);
         } else {

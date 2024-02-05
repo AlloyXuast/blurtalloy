@@ -1,7 +1,7 @@
-import { Component } from 'react';
+import React from 'react';
 import MarkdownViewer from 'app/components/cards/MarkdownViewer';
 
-class XSS extends Component {
+class XSS extends React.Component {
     render() {
         if (!process.env.NODE_ENV === 'development') return <div />;
         const tests = xss.map((test, i) => (

@@ -1,12 +1,12 @@
-/* eslint-disable react/button-has-type */
-import React, { Component } from 'react';
+/* eslint-disable import/no-import-module-exports */
+import React from 'react';
 import DappsList from '../cards/DappsList';
 
-class Dapps extends Component {
+class Dapps extends React.Component {
     render() {
         return (
             <div className="text-center">
-                <h2>Dapps and Tools on Blurt Ecosystem</h2>
+                <h2>dApps and Tools on Blurt Ecosystem</h2>
                 <hr />
                 <div className="row">
                     <div className="column">
@@ -20,5 +20,5 @@ class Dapps extends Component {
 
 module.exports = {
     path: 'dapps',
-    component: Dapps,
+    component: Dapps
 };

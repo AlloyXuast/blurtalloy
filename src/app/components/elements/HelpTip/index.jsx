@@ -1,11 +1,15 @@
-import React, { Component } from 'react';
+/* eslint-disable react/no-string-refs */
+/* eslint-disable react/no-find-dom-node */
+/* eslint-disable react/forbid-prop-types */
+/* eslint-disable react/static-property-placement */
+import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
-export default class HelpTip extends Component {
+export default class HelpTip extends React.Component {
     static propTypes = {
-        children: PropTypes.objectOf(PropTypes.object).isRequired,
-        content: PropTypes.oneOfType([PropTypes.string, PropTypes.array])
+        children: PropTypes.any.isRequired,
+        content: PropTypes.oneOfType([PropTypes.string, PropTypes.array, PropTypes.object])
             .isRequired,
     };
 
@@ -16,10 +20,19 @@ export default class HelpTip extends Component {
         };
     }
 
+    show = () => this.setVisibility(true);
+
+    hide = () => this.setVisibility(false);
+
     setVisibility = (visible) => {
         this.setState({
             visible,
         });
+    };
+
+    handleTouch = () => {
+        this.show();
+        this.assignOutsideTouchHandler();
     };
 
     assignOutsideTouchHandler = () => {
@@ -37,17 +50,10 @@ export default class HelpTip extends Component {
         document.addEventListener('touchstart', handler);
     };
 
-    handleTouch = () => {
-        this.show();
-        this.assignOutsideTouchHandler();
-    };
-
-    hide = () => this.setVisibility(false);
-
-    show = () => this.setVisibility(true);
-
     render() {
-        const { props, state, show, hide, handleTouch } = this;
+        const {
+            props, state, show, hide, handleTouch
+        } = this;
         return (
             <div
                 onMouseEnter={show}

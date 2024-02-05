@@ -90,6 +90,7 @@ label {
 
 .ptc,
 a.ptc {
+    // font-family: 'Nunito';
     cursor: pointer;
     text-decoration: none;
     transition: 0.2s all ease-in-out;
@@ -180,6 +181,7 @@ h6 {
 .c-sidebar {
     width: 100%;
     max-width: 240px;
+    // font-family: 'Roboto', 'Nunito',sans-serif;
     font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial,
         sans-serif;
     &__module {
@@ -193,7 +195,7 @@ h6 {
 
 .phishy {
     display: inline;
-    color: orange;
+    color: red;
 }
 
 .pager {
@@ -231,7 +233,14 @@ a[rel='nofollow noopener']:after {
     font-size: 0.75rem;
     vertical-align: middle;
     @include themify($themes) {
-        background-color: themed('colorAccent');
-        color: themed('buttonText');
+        border: 1px solid themed('colorAccent');
+        color: $color-text-gray;
     }
+}
+
+.user_role {
+    font-size: 0.8em;
+    text-transform: uppercase;
+    color: gray;
+    margin: 0 0.2em;
 }

@@ -17,8 +17,10 @@
         border-radius: 0.3rem;
         transition: 0.2s all ease-in-out;
         @include themify($themes) {
-            background: themed('backgroundColorOpaque');
+            // background: #f2652ebd;
+            background: themed('backgroundColorEmphasis');
             color: themed('textColorPrimary');
+            // color: white;
             border: themed('border');
         }
         &:hover {

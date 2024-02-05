@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import * as transactionActions from 'app/redux/TransactionReducer';
@@ -8,7 +8,7 @@ import { Map } from 'immutable';
 const { func, string } = PropTypes;
 
 /** Sole consumer for a transaction error of a given type. */
-class TransactionError extends Component {
+class TransactionError extends React.Component {
     static propTypes = {
         // HTML properties
         opType: string.isRequired,
@@ -20,19 +20,15 @@ class TransactionError extends Component {
         errorKey: string,
         exception: string,
     };
-
-    componentDidMount() {
+    componentWillMount() {
         const { opType, addListener } = this.props;
         addListener(opType);
     }
-
     shouldComponentUpdate = shouldComponentUpdate(this, 'TransactionError');
-
     componentWillUnmount() {
         const { opType, removeListener } = this.props;
         removeListener(opType);
     }
-
     render() {
         const { errorKey, exception, error } = this.props;
         const cn = 'error callout alert';

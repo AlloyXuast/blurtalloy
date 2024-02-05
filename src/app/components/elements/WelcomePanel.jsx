@@ -1,11 +1,11 @@
-import { Component } from 'react';
+import React from 'react';
 import CloseButton from 'app/components/elements/CloseButton';
 import { Link } from 'react-router';
 import tt from 'counterpart';
 import { SIGNUP_URL } from 'shared/constants';
-import imgSrc from 'app/assets/images/ready-player-hero-1.png';
+import imgSrc from 'app/assets/images/hero-2.jpg';
 
-export default class WelcomePanel extends Component {
+export default class WelcomePanel extends React.Component {
     constructor(props) {
         super(props);
         this.setShowBannerFalse = props.setShowBannerFalse;

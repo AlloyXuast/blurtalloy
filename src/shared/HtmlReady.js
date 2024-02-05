@@ -84,7 +84,10 @@ const XMLSerializer = new xmldom.XMLSerializer();
     If hideImages and mutate is set to true all images will be replaced
     by <pre> elements containing just the image url.
 */
-export default function (html, { mutate = true, hideImages = false } = {}) {
+export default function (
+    html,
+    { mutate = true, hideImages = false, hideLinks = false } = {}
+) {
     const state = { mutate };
     state.hashtags = new Set();
     state.usertags = new Set();
@@ -98,6 +101,15 @@ export default function (html, { mutate = true, hideImages = false } = {}) {
         );
         traverse(doc, state);
         if (mutate) {
+            if (hideLinks) {
+                for (const link of Array.from(doc.getElementsByTagName('a'))) {
+                    const pre = doc.createElement('pre');
+                    pre.appendChild(
+                        doc.createTextNode('Reported phishing link.')
+                    );
+                    link.parentNode.replaceChild(pre, link);
+                }
+            }
             if (hideImages) {
                 for (const image of Array.from(
                     doc.getElementsByTagName('img')
@@ -150,23 +162,24 @@ function link(state, child) {
     if (url) {
         state.links.add(url);
         if (state.mutate) {
-            // If this link is not relative, http, https, steem or esteem -- add https.
-            if (
-                !/^((#)|(\/(?!\/))|(((steem|esteem|https?):)?\/\/))/.test(url)
-            ) {
+            // If this link is not relative, http, https, blurt -- add https.
+            if (!/^((#)|(\/(?!\/))|(((blurt|https?):)?\/\/))/.test(url)) {
                 child.setAttribute('href', 'https://' + url);
             }
 
             // Unlink potential phishing attempts
             if (
                 (url.indexOf('#') !== 0 && // Allow in-page links
-                    child.textContent.match(/(www\.)?steemit\.com/i) &&
-                    !url.match(/https?:\/\/(.*@)?(www\.)?steemit\.com/i)) ||
+                    child.textContent.match(/(www\.)?blurt\.blog/i) &&
+                    !url.match(/https?:\/\/(.*@)?(www\.)?blurt\.blog/i)) ||
                 Phishing.looksPhishy(url)
             ) {
                 const phishyDiv = child.ownerDocument.createElement('div');
-                phishyDiv.textContent = `${child.textContent} / ${url}`;
-                phishyDiv.setAttribute('title', getPhishingWarningMessage());
+                phishyDiv.textContent = 'Phishing Link Detected and Hidden';
+                phishyDiv.setAttribute(
+                    'title',
+                    'Phishing link has been replaced.'
+                );
                 phishyDiv.setAttribute('class', 'phishy');
                 child.parentNode.replaceChild(phishyDiv, child);
             }

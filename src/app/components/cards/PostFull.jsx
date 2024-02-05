@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router';
 import TimeAgoWrapper from 'app/components/elements/TimeAgoWrapper';
@@ -11,6 +11,8 @@ import Voting from 'app/components/elements/Voting';
 import Reblog from 'app/components/elements/Reblog';
 import MarkdownViewer from 'app/components/cards/MarkdownViewer';
 import ReplyEditor from 'app/components/elements/ReplyEditor';
+import MuteButton from 'app/components/elements/MuteButton';
+import FlagButton from 'app/components/elements/FlagButton';
 import { immutableAccessor } from 'app/utils/Accessors';
 import extractContent from 'app/utils/ExtractContent';
 import TagList from 'app/components/elements/TagList';
@@ -24,19 +26,24 @@ import { APP_DOMAIN, APP_NAME } from 'app/client_config';
 import tt from 'counterpart';
 import userIllegalContent from 'app/utils/userIllegalContent';
 import ImageUserBlockList from 'app/utils/ImageUserBlockList';
+import BadActorList from 'app/utils/BadActorList';
 import LoadingIndicator from 'app/components/elements/LoadingIndicator';
 import { allowDelete } from 'app/utils/StateFunctions';
 import { GoogleAd } from 'app/components/elements/GoogleAd';
 import ContentEditedWrapper from '../elements/ContentEditedWrapper';
 import Blacklist from '../elements/Blacklist';
+import { Role } from 'app/utils/Community';
 
-function TimeAuthorCategory({ content, authorRepLog10, showTags }) {
+const readingTime = require('reading-time');
+
+function TimeAuthorCategory({ content, authorRepLog10, post_content, showTags }) {
     return (
         <span className="PostFull__time_author_category vcard">
             <Icon name="clock" className="space-right" />
             <TimeAgoWrapper date={content.created} />
             {} {tt('g.by')}{' '}
             <Author
+                post={post_content}
                 author={content.author}
                 authorRepLog10={authorRepLog10}
                 showAffiliation
@@ -52,12 +59,13 @@ function TimeAuthorCategory({ content, authorRepLog10, showTags }) {
     );
 }
 
-function TimeAuthorCategoryLarge({ content, authorRepLog10 }) {
+function TimeAuthorCategoryLarge({ content, authorRepLog10, post_content }) {
     return (
         <span className="PostFull__time_author_category_large vcard">
             <Userpic account={content.author} />
             <div className="right-side">
                 <Author
+                    post={post_content}
                     author={content.author}
                     authorRepLog10={authorRepLog10}
                     showAffiliation
@@ -67,18 +75,18 @@ function TimeAuthorCategoryLarge({ content, authorRepLog10 }) {
                     {' '}
                     {tt('g.in')} <TagList post={content} single />
                 </span>{' '}
-                •&nbsp; <TimeAgoWrapper date={content.created} />
-                &nbsp;{' '}
+                •&nbsp; <TimeAgoWrapper date={content.created} />{' '}
                 <ContentEditedWrapper
                     createDate={content.created}
-                    updateDate={content.last_update}
+                    updateDate={content.updated}
                 />
+                •&nbsp;{readingTime(content.body).text}
             </div>
         </span>
     );
 }
 
-class PostFull extends Component {
+class PostFull extends React.Component {
     static propTypes = {
         // html props
         /* Show extra options (component is being viewed alone) */
@@ -97,6 +105,10 @@ class PostFull extends Component {
     constructor() {
         super();
         this.state = {};
+        this.fbShare = this.fbShare.bind(this);
+        this.twitterShare = this.twitterShare.bind(this);
+        this.redditShare = this.redditShare.bind(this);
+        this.linkedInShare = this.linkedInShare.bind(this);
         this.showExplorePost = this.showExplorePost.bind(this);
         this.onShowReply = () => {
             const {
@@ -126,7 +138,7 @@ class PostFull extends Component {
         };
     }
 
-    componentDidMount() {
+    componentWillMount() {
         const { post } = this.props;
         const formId = `postFull-${post}`;
         this.setState({
@@ -156,7 +168,7 @@ class PostFull extends Component {
         );
     }
 
-    fbShare = e => {
+    fbShare(e) {
         const href = this.share_params.url;
         e.preventDefault();
         window.open(
@@ -165,9 +177,48 @@ class PostFull extends Component {
             'width=600, height=400, scrollbars=no'
         );
         serverApiRecordEvent('FbShare', this.share_params.link);
-    };
+    }
 
-    linkedInShare = e => {
+    twitterShare(e) {
+        serverApiRecordEvent('TwitterShare', this.share_params.link);
+        e.preventDefault();
+        const winWidth = 640;
+        const winHeight = 460;
+        const winTop = screen.height / 2 - winHeight / 2;
+        const winLeft = screen.width / 2 - winWidth / 2;
+        const s = this.share_params;
+        const q =
+            'text=' +
+            encodeURIComponent(s.title) +
+            '&url=' +
+            encodeURIComponent(s.url);
+        window.open(
+            'http://twitter.com/share?' + q,
+            'Share',
+            'top=' +
+                winTop +
+                ',left=' +
+                winLeft +
+                ',toolbar=0,status=0,width=' +
+                winWidth +
+                ',height=' +
+                winHeight
+        );
+    }
+
+    redditShare(e) {
+        serverApiRecordEvent('RedditShare', this.share_params.link);
+        e.preventDefault();
+        const s = this.share_params;
+        const q =
+            'title=' +
+            encodeURIComponent(s.title) +
+            '&url=' +
+            encodeURIComponent(s.url);
+        window.open('https://www.reddit.com/submit?' + q, 'Share');
+    }
+
+    linkedInShare(e) {
         serverApiRecordEvent('LinkedInShare', this.share_params.link);
         e.preventDefault();
         const winWidth = 720;
@@ -193,25 +244,7 @@ class PostFull extends Component {
                 ',height=' +
                 winHeight
         );
-    };
-
-    redditShare = e => {
-        serverApiRecordEvent('RedditShare', this.share_params.link);
-        e.preventDefault();
-        const s = this.share_params;
-        const q =
-            'title=' +
-            encodeURIComponent(s.title) +
-            '&url=' +
-            encodeURIComponent(s.url);
-        window.open('https://www.reddit.com/submit?' + q, 'Share');
-    };
-
-    showExplorePost = () => {
-        const permlink = this.share_params.link;
-        const title = this.share_params.rawtitle;
-        this.props.showExplorePost(permlink, title);
-    };
+    }
 
     showPromotePost = () => {
         const post_content = this.props.cont.get(this.props.post);
@@ -221,36 +254,34 @@ class PostFull extends Component {
         this.props.showPromotePost(author, permlink);
     };
 
-    twitterShare = e => {
-        serverApiRecordEvent('TwitterShare', this.share_params.link);
-        e.preventDefault();
-        const winWidth = 640;
-        const winHeight = 460;
-        const winTop = screen.height / 2 - winHeight / 2;
-        const winLeft = screen.width / 2 - winWidth / 2;
-        const s = this.share_params;
-        const q =
-            'text=' +
-            encodeURIComponent(s.title) +
-            '&url=' +
-            encodeURIComponent(s.url);
-        window.open(
-            'http://twitter.com/share?' + q,
-            'Share',
-            'top=' +
-                winTop +
-                ',left=' +
-                winLeft +
-                ',toolbar=0,status=0,width=' +
-                winWidth +
-                ',height=' +
-                winHeight
+    showExplorePost = () => {
+        const permlink = this.share_params.link;
+        const title = this.share_params.rawtitle;
+        this.props.showExplorePost(permlink, title);
+    };
+
+    onTogglePin = isPinned => {
+        const { community, username, cont, post } = this.props;
+        const content = cont.get(post);
+        if (!community || !username) console.error('pin fail', this.props);
+
+        const key = ['content', post, 'stats', 'is_pinned'];
+        this.props.stateSet(key, !isPinned);
+
+        const account = content.get('author');
+        const permlink = content.get('permlink');
+        this.props.togglePinnedPost(
+            !isPinned,
+            username,
+            community,
+            account,
+            permlink
         );
     };
 
     render() {
         const {
-            props: { username, post },
+            props: { username, post, community, viewer_role },
             state: {
                 PostFullReplyEditor,
                 PostFullEditEditor,
@@ -262,7 +293,7 @@ class PostFull extends Component {
             onShowEdit,
             onDeletePost,
         } = this;
-        const {authorMutedUsers} = this.props;
+        const { authorMutedUsers } = this.props;
         const post_content = this.props.cont.get(this.props.post);
         if (!post_content) return null;
         const p = extractContent(immutableAccessor, post_content);
@@ -274,8 +305,9 @@ class PostFull extends Component {
         if (content.category) link = `/${content.category}${link}`;
 
         const { category, title, body } = content;
-        if (process.env.BROWSER && title)
+        if (process.env.BROWSER && title) {
             document.title = title + ' — ' + APP_NAME;
+        }
 
         let content_body = content.body;
         const url = `/${category}/@${author}/${permlink}`;
@@ -298,6 +330,7 @@ class PostFull extends Component {
 
         // hide images if user is on blacklist
         const hideImages = ImageUserBlockList.includes(content.author);
+        const hideLinks = BadActorList.includes(content.author);
 
         const replyParams = {
             author,
@@ -371,7 +404,10 @@ class PostFull extends Component {
             );
         }
         const pending_payout = parsePayoutAmount(content.pending_payout_value);
-        const total_payout = parsePayoutAmount(content.total_payout_value);
+        let total_payout = content.total_payout_value ? parsePayoutAmount(content.total_payout_value) : 0
+        if (content.author_payout_value && content.curator_payout_value) {
+            total_payout = parsePayoutAmount(content.author_payout_value) + parsePayoutAmount(content.curator_payout_value);
+        }
         const high_quality_post = pending_payout + total_payout > 10.0;
 
         let post_header = <h1 className="entry-title">{content.title}</h1>;
@@ -412,18 +448,29 @@ class PostFull extends Component {
         }
 
         const _isPaidout =
-            post_content.get('cashout_time') === '1969-12-31T23:59:59'; // TODO: audit after HF19. #1259
+            post_content.get('payout_at') === '1969-12-31T23:59:59'; // TODO: audit after HF19. #1259
         const showReblog = !_isPaidout;
         const showPromote = false;
-        //username && !_isPaidout && post_content.get('depth') == 0;
+        // username && !_isPaidout && post_content.get('depth') == 0;
         const showReplyOption =
-            username !== undefined && post_content.get('depth') < 255 && authorMutedUsers !== undefined 
-                && !authorMutedUsers.includes(username);
-        const showReplyBlockedOption = username !== undefined && post_content.get('depth') < 255 && authorMutedUsers !== undefined 
-                && authorMutedUsers.includes(username);
+            username !== undefined &&
+            post_content.get('depth') < 255 &&
+            authorMutedUsers !== undefined &&
+            !authorMutedUsers.includes(username);
+        const showReplyBlockedOption =
+            username !== undefined &&
+            post_content.get('depth') < 255 &&
+            authorMutedUsers !== undefined &&
+            authorMutedUsers.includes(username);
+        const showPinOption =
+            post_content.get('depth') == 0 && Role.atLeast(viewer_role, 'mod');
+        const showMuteOption = username && Role.atLeast(viewer_role, 'mod');
         const showEditOption = username === author;
         const showDeleteOption =
             username === author && allowDelete(post_content) && !_isPaidout;
+        const canFlag =
+            username && community && Role.atLeast(viewer_role, 'guest');
+        const isPinned = post_content.getIn(['stats', 'is_pinned'], false);
 
         const authorRepLog10 = repLog10(content.author_reputation);
         const isPreViewCount =
@@ -442,6 +489,7 @@ class PostFull extends Component {
                     highQualityPost={high_quality_post}
                     noImage={content.stats.gray}
                     hideImages={hideImages}
+                    hideLinks={hideLinks}
                 />
             );
         }
@@ -451,12 +499,14 @@ class PostFull extends Component {
                 this.props.pricePerBlurt
         ).toFixed(2);
 
+
         return (
             <article
                 className="PostFull hentry"
                 itemScope
                 itemType="http://schema.org/Blog"
             >
+                {canFlag && <FlagButton post={post_content} />}
                 {showEdit ? (
                     renderedEditor
                 ) : (
@@ -464,6 +514,7 @@ class PostFull extends Component {
                         <div className="PostFull__header">
                             {post_header}
                             <TimeAuthorCategoryLarge
+                                post_content={post_content}
                                 content={content}
                                 authorRepLog10={authorRepLog10}
                             />
@@ -486,6 +537,7 @@ class PostFull extends Component {
                 <div className="PostFull__footer row">
                     <div className="columns medium-12 large-4">
                         <TimeAuthorCategory
+                            post_content={post_content}
                             content={content}
                             authorRepLog10={authorRepLog10}
                         />
@@ -504,12 +556,23 @@ class PostFull extends Component {
                             <Reblog author={author} permlink={permlink} />
                         )}
                         <span className="PostFull__reply">
+                            {/* all */}
                             {showReplyOption && (
                                 <a onClick={onShowReply}>{tt('g.reply')}</a>
                             )}{' '}
-                            {showReplyBlockedOption &&(
-                                <b title="Author of this post has blocked you from commenting">Reply Disabled</b>
+                            {showReplyBlockedOption && (
+                                <b title="Author of this post has blocked you from commenting">
+                                    Reply Disabled
+                                </b>
                             )}
+                            {/* mods */}
+                            {showPinOption && (
+                                <a onClick={() => this.onTogglePin(isPinned)}>
+                                    {isPinned ? tt('g.unpin') : tt('g.pin')}
+                                </a>
+                            )}
+                            {showMuteOption && <MuteButton post={post_content} />}{' '}
+                            {/* owner */}
                             {showEditOption && !showEdit && (
                                 <a onClick={onShowEdit}>{tt('g.edit')}</a>
                             )}{' '}
@@ -553,19 +616,33 @@ class PostFull extends Component {
 
 export default connect(
     // mapStateToProps
-    (state, ownProps) => ({
-        ...ownProps,
-        username: state.user.getIn(['current', 'username']),
-        operation_flat_fee: state.global.getIn(['props', 'operation_flat_fee']),
-        bandwidth_kbytes_fee: state.global.getIn([
-            'props',
-            'bandwidth_kbytes_fee',
-        ]),
-        pricePerBlurt: state.global.getIn(['props', 'price_per_blurt']),
-    }),
+    (state, ownProps) => {
+        const post = ownProps.cont.get(ownProps.post);
+        const category = post.get('category');
+        const community = state.global.getIn(['community', category, 'name']);
 
+        return {
+            ...ownProps,
+            community,
+            username: state.user.getIn(['current', 'username']),
+            operation_flat_fee: state.global.getIn(['props', 'operation_flat_fee']),
+            bandwidth_kbytes_fee: state.global.getIn([
+                'props',
+                'bandwidth_kbytes_fee',
+            ]),
+            pricePerBlurt: state.global.getIn(['props', 'price_per_blurt']),
+            viewer_role: state.global.getIn(
+                ['community', community, 'context', 'role'],
+                'guest'
+            ),
+        }
+        
+    },
     // mapDispatchToProps
     (dispatch) => ({
+        stateSet: (key, value) => {
+            dispatch(globalActions.set({ key, value }));
+        },
         dispatchSubmit: (data) => {
             dispatch(userActions.usernamePasswordLogin({ ...data }));
         },
@@ -581,16 +658,16 @@ export default connect(
             operationFlatFee,
             bandwidthKbytesFee
         ) => {
-            let operation = { author, permlink };
-            let size = JSON.stringify(operation).replace(
+            const operation = { author, permlink };
+            const size = JSON.stringify(operation).replace(
                 /[\[\]\,\"]/g,
                 ''
             ).length;
-            let bw_fee = Math.max(
+            const bw_fee = Math.max(
                 0.001,
                 ((size / 1024) * bandwidthKbytesFee).toFixed(3)
             );
-            let fee = (operationFlatFee + bw_fee).toFixed(3);
+            const fee = (operationFlatFee + bw_fee).toFixed(3);
             dispatch(
                 transactionActions.broadcastOperation({
                     type: 'delete_comment',
@@ -615,17 +692,51 @@ export default connect(
                 })
             );
         },
+        togglePinnedPost: (
+            pinPost,
+            username,
+            community,
+            account,
+            permlink,
+            successCallback,
+            errorCallback
+        ) => {
+            let action = 'unpinPost';
+            if (pinPost) action = 'pinPost';
+
+            const payload = [
+                action,
+                {
+                    community,
+                    account,
+                    permlink,
+                },
+            ];
+
+            return dispatch(
+                transactionActions.broadcastOperation({
+                    type: 'custom_json',
+                    operation: {
+                        id: 'community',
+                        required_posting_auths: [username],
+                        json: JSON.stringify(payload),
+                    },
+                    successCallback,
+                    errorCallback,
+                })
+            );
+        },
     })
 )(PostFull);
 
 const saveOnShow = (formId, type) => {
     if (process.env.BROWSER) {
-        if (type)
+        if (type) {
             localStorage.setItem(
                 'showEditor-' + formId,
                 JSON.stringify({ type }, null, 0)
             );
-        else {
+        } else {
             // console.log('del formId', formId)
             localStorage.removeItem('showEditor-' + formId);
             localStorage.removeItem('replyEditorData-' + formId + '-reply');

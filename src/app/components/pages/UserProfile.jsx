@@ -1,141 +1,159 @@
 /* eslint-disable import/no-import-module-exports */
 /* eslint react/prop-types: 0 */
-import React, { Component } from 'react';
+import React from 'react';
 import { Link } from 'react-router';
 import { connect } from 'react-redux';
 import classnames from 'classnames';
 import * as userActions from 'app/redux/UserReducer';
 import { actions as fetchDataSagaActions } from 'app/redux/FetchDataSaga';
-import Icon from 'app/components/elements/Icon';
 import UserWallet from 'app/components/modules/UserWallet';
 import Settings from 'app/components/modules/Settings';
 import UserList from 'app/components/elements/UserList';
-import Follow from 'app/components/elements/Follow';
 import LoadingIndicator from 'app/components/elements/LoadingIndicator';
 import PostsList from 'app/components/cards/PostsList';
 import { isFetchingOrRecentlyUpdated } from 'app/utils/StateFunctions';
-import Tooltip from 'app/components/elements/Tooltip';
-import DateJoinWrapper from 'app/components/elements/DateJoinWrapper';
 import tt from 'counterpart';
-
-import Userpic from 'app/components/elements/Userpic';
+import UserProfileHeader from 'app/components/cards/UserProfileHeader';
 import Callout from 'app/components/elements/Callout';
-import normalizeProfile from 'app/utils/NormalizeProfile';
 import userIllegalContent from 'app/utils/userIllegalContent';
-import AffiliationMap from 'app/utils/AffiliationMap';
-import { proxifyImageUrl } from 'app/utils/ProxifyUrl';
 import ArticleLayoutSelector from 'app/components/modules/ArticleLayoutSelector';
-import SanitizedLink from 'app/components/elements/SanitizedLink';
-import DropdownMenu from 'app/components/elements/DropdownMenu';
+import { actions as UserProfilesSagaActions } from 'app/redux/UserProfilesSaga';
+import { api } from '@blurtfoundation/blurtjs';
 import NotificationsList from '../cards/NotificationsList';
 import UserAvatar from './UserAvatar';
+import SubscriptionsList from '../cards/SubscriptionsList';
 
-import Blacklist from '../elements/Blacklist';
+import WitnessVoters from '../elements/WitnessVoters';
 
-export default class UserProfile extends Component {
+export default class UserProfile extends React.Component {
     constructor() {
         super();
-        this.state = { showResteem: true };
-        this.onPrint = () => {
-            if (typeof window !== 'undefined') {
-                window.print();
-            }
+        this.state = {
+            showResteem: true,
+            authorMutedUsers: undefined,
+            authorMutedUsersLoaded: false,
+            witnessVoters: undefined
         };
+        // this.onPrint = () => {
+        //     if (typeof window !== 'undefined') {
+        //         window.print();
+        //     }
+        // };
+        this.loadMore = this.loadMore.bind(this);
+    }
+
+    componentWillMount() {
+        this.loadAuthorMutedUsers();
+        const { profile, accountname, fetchProfile, current_user } = this.props;
+        const username = current_user ? current_user.get('username') : null;
+        if (!profile) fetchProfile(accountname, username);
     }
 
     shouldComponentUpdate(np, ns) {
-        const { follow, follow_count, account, accountname, notifications } =
-            this.props;
-
-        let followersLoading = false,
-            npFollowersLoading = false;
-        let followingLoading = false,
-            npFollowingLoading = false;
-
-        if (follow) {
-            followersLoading = follow.getIn(
-                ['getFollowersAsync', accountname, 'blog_loading'],
-                false
-            );
-            followingLoading = follow.getIn(
-                ['getFollowingAsync', accountname, 'blog_loading'],
-                false
-            );
-        }
-        if (np.follow) {
-            npFollowersLoading = np.follow.getIn(
-                ['getFollowersAsync', accountname, 'blog_loading'],
-                false
-            );
-            npFollowingLoading = np.follow.getIn(
-                ['getFollowingAsync', accountname, 'blog_loading'],
-                false
-            );
-        }
-
         return (
             np.current_user !== this.props.current_user ||
-            np.account !== this.props.account ||
+            np.profile !== this.props.profile ||
             np.global_status !== this.props.global_status ||
-            (npFollowersLoading !== followersLoading && !npFollowersLoading) ||
-            (npFollowingLoading !== followingLoading && !npFollowingLoading) ||
             np.loading !== this.props.loading ||
             np.location.pathname !== this.props.location.pathname ||
-            np.follow_count !== this.props.follow_count ||
             np.blogmode !== this.props.blogmode ||
             ns.showResteem !== this.state.showResteem ||
-            np.notifications !== this.props.notifications
+            np.notifications !== this.props.notifications ||
+            ns.authorMutedUsersLoaded !== this.state.authorMutedUsersLoaded
         );
     }
 
-    loadMore = (last_post, category, showResteem) => {
-        const { accountname } = this.props;
+    componentDidUpdate(prevProps) {
+        const { profile, accountname, fetchProfile, current_user } = this.props;
+        const username = current_user ? current_user.get('username') : null;
+        if (
+            prevProps.accountname != accountname ||
+            prevProps.username != username
+        ) {
+            if (!profile) fetchProfile(accountname, username);
+        }
+    }
+
+    loadMore(last_post, category, showResteem) {
+        const { accountname, reblogPref, current_user, global_status } =
+            this.props;
+        const username = current_user ? current_user.get('username') : null;
 
         if (!last_post) return;
 
-        let order;
-        switch (category) {
-            case 'blog':
-                order = 'by_author';
-                break;
-            case 'comments':
-                order = 'by_comments';
-                break;
-            case 'recent_replies':
-                order = 'by_replies';
-                break;
-            default:
-                console.log('unhandled category:', category);
-        }
-
         if (
             isFetchingOrRecentlyUpdated(
-                this.props.global_status,
-                order,
-                category
+                global_status,
+                category,
+                '@' + accountname
             )
         ) {
             return;
         }
 
-        const postFilter = showResteem
-            ? null
-            : (value) => value.author === accountname;
+        let postFilter = null;
+        if (reblogPref === 'disabled') {
+            postFilter = (value) => value.author === accountname;
+        } else {
+            postFilter = showResteem
+                ? null
+                : (value) => value.author === accountname;
+        }
         const [author, permlink] = last_post.split('/');
         this.props.requestData({
             author,
             permlink,
-            order,
-            category,
-            accountname,
-            postFilter,
+            order: category,
+            category: '@' + accountname,
+            observer: username
         });
-    };
+    }
 
     toggleShowResteem = (e) => {
         e.preventDefault();
-        const newShowResteem = !this.state.showResteem;
-        this.setState({ showResteem: newShowResteem });
+        this.setState((prevState) => ({ showResteem: !prevState.showResteem }));
+    };
+
+    loadAuthorMutedUsers = async () => {
+        const { accountname } = this.props;
+
+        if (accountname && accountname.length > 0) {
+            const getFollowingAsync = async () => {
+                try {
+                    const followingAsyncResp = await api.getFollowingAsync(
+                        accountname,
+                        null,
+                        'ignore',
+                        1000
+                    );
+                    const mutedUsers = [];
+                    if (followingAsyncResp) {
+                        // eslint-disable-next-line no-restricted-syntax
+                        for (const follow of followingAsyncResp) {
+                            mutedUsers.push(follow.following);
+                        }
+                        this.setState({
+                            authorMutedUsers: mutedUsers,
+                            authorMutedUsersLoaded: true
+                        });
+                    } else {
+                        console.warn('Error in loading muted users');
+                        this.setState({
+                            authorMutedUsers: [],
+                            authorMutedUsersLoaded: true
+                        });
+                    }
+                } catch (e) {
+                    console.warn('Error in loading muted users');
+                    this.setState({
+                        authorMutedUsers: [],
+                        authorMutedUsersLoaded: true
+                    });
+                }
+            };
+
+            await getFollowingAsync();
+        }
     };
 
     render() {
@@ -146,82 +164,58 @@ export default class UserProfile extends Component {
                 global_status,
                 follow,
                 accountname,
-                walletUrl,
                 notifications,
-            },
-            onPrint,
+                profile,
+                posts,
+                subscriptions,
+                section,
+                loading,
+                routeParams,
+                blogmode
+            }
+            // onPrint
         } = this;
+
+        const { reblogPref } = this.props;
         const username = current_user ? current_user.get('username') : null;
-
-        let { section } = this.props.routeParams;
-        if (!section) section = 'blog';
-
         // Loading status
         const status = global_status
             ? global_status.getIn([section, 'by_author'])
             : null;
-        const fetching = (status && status.fetching) || this.props.loading;
+        const fetching = (status && status.fetching) || loading;
 
-        let account;
-        let accountImm = this.props.account;
-        if (accountImm) {
-            account = accountImm.toJS();
-        } else if (fetching) {
+        if (
+            !profile &&
+            (fetching || (section === 'notifications' && !notifications))
+        ) {
             return (
                 <center>
                     <LoadingIndicator type="circle" />
                 </center>
             );
-        } else {
+        }
+        if (!profile) {
             return (
                 <div>
                     <center>{tt('user_profile.unknown_account')}</center>
                 </div>
             );
         }
+
         const followers =
             follow && follow.getIn(['getFollowersAsync', accountname]);
         const following =
             follow && follow.getIn(['getFollowingAsync', accountname]);
 
-        // get avatar
-        let profile = {};
-        if (accountImm.toJS() && accountImm.toJS().json_metadata) {
-            let metaData = accountImm
-                ? JSON.parse(accountImm.toJS().json_metadata)
-                : {};
-            if (typeof metaData === 'string') metaData = JSON.parse(metaData); // issue #1237
-            profile = metaData && metaData.profile ? metaData.profile : {};
-        }
-
-        // instantiate following items
-        let totalCounts = this.props.follow_count;
-        let followerCount = 0;
-        let followingCount = 0;
-
-        if (totalCounts && accountname) {
-            totalCounts = totalCounts.get(accountname);
-            if (totalCounts) {
-                totalCounts = totalCounts.toJS();
-                followerCount = totalCounts.follower_count;
-                followingCount = totalCounts.following_count;
-            }
-        }
-
-        // const rep = repLog10(account.reputation);
-
-        const isMyAccount = username === account.name;
+        const isMyAccount = username === profile.get('name');
         let tab_content = null;
 
-        let walletClass = '';
+        // let walletClass = '';
         if (section === 'transfers') {
-            walletClass = 'active';
+            // walletClass = 'active';
             tab_content = (
                 <div>
-                    <UserWallet
-                        account={accountImm}
-                        current_user={current_user}
-                    />
+                    <UserWallet account={profile} current_user={current_user} />
                 </div>
             );
         } else if (section === 'followers') {
@@ -244,16 +238,22 @@ export default class UserProfile extends Component {
                     />
                 );
             }
+        } else if (section === 'communities') {
+            tab_content = (
+                <SubscriptionsList
+                    username={accountname}
+                    subscriptions={subscriptions}
+                />
+            );
         } else if (section === 'settings') {
-            tab_content = <Settings routeParams={this.props.routeParams} />;
+            tab_content = <Settings routeParams={routeParams} />;
         } else if (section === 'comments') {
-            if (account.comments) {
-                let posts = accountImm.get('comments');
+            if (posts) {
                 if (!fetching && posts && !posts.size) {
                     tab_content = (
                         <Callout>
                             {tt('user_profile.user_hasnt_made_any_posts_yet', {
-                                name: accountname,
+                                name: accountname
                             })}
                         </Callout>
                     );
@@ -276,9 +276,8 @@ export default class UserProfile extends Component {
                     </center>
                 );
             }
-        } else if (!section || section === 'blog') {
-            if (account.blog) {
-                let posts = accountImm.get('blog');
+        } else if (!section || section === 'blog' || section === 'posts') {
+            if (posts) {
                 const emptyText = isMyAccount ? (
                     <div>
                         {tt(
@@ -305,7 +304,7 @@ export default class UserProfile extends Component {
                     </div>
                 ) : (
                     tt('user_profile.user_hasnt_started_bloggin_yet', {
-                        name: accountname,
+                        name: accountname
                     })
                 );
 
@@ -314,19 +313,29 @@ export default class UserProfile extends Component {
                 } else {
                     tab_content = (
                         <div>
-                            <a href="#" onClick={this.toggleShowResteem}>
-                                {showResteem
-                                    ? tt('user_profile.hide_resteems')
-                                    : tt('user_profile.show_all')}
-                            </a>
+                            {reblogPref !== 'disabled' &&
+                                (!section || section === 'blog') && (
+                                    <a
+                                        href="#"
+                                        onClick={this.toggleShowResteem}
+                                    >
+                                        {showResteem
+                                            ? tt('user_profile.hide_resteems')
+                                            : tt('user_profile.show_all')}
+                                    </a>
+                                )}
                             <PostsList
-                                account={account.name}
+                                account={profile.get('name')}
                                 posts={posts}
                                 loading={fetching}
-                                category="blog"
+                                category={section ? section : 'blog'}
                                 loadMore={this.loadMore}
                                 showPinned={false}
-                                showResteem={showResteem}
+                                showResteem={
+                                    reblogPref === 'disabled'
+                                        ? false
+                                        : showResteem
+                                }
                                 showSpam
                             />
                         </div>
@@ -339,14 +348,27 @@ export default class UserProfile extends Component {
                     </center>
                 );
             }
-        } else if (section === 'recent-replies') {
-            if (account.recent_replies) {
-                let posts = accountImm.get('recent_replies');
-                if (!fetching && posts && !posts.size) {
+        } else if (section === 'replies') {
+            const { authorMutedUsers, authorMutedUsersLoaded } = this.state;
+
+            if (posts && authorMutedUsersLoaded) {
+                // let filterPosts = []
+                // if (authorMutedUsers !== undefined) {
+                //   filterPosts = posts.get('recent_replies').filter(
+                //     (reply) => !authorMutedUsers.includes(reply.split('/')[0])
+                //   );
+                // }
+
+                if (
+                    authorMutedUsersLoaded &&
+                    !fetching &&
+                    posts &&
+                    !posts.size
+                ) {
                     tab_content = (
                         <Callout>
                             {tt('user_profile.user_hasnt_had_any_replies_yet', {
-                                name: accountname,
+                                name: accountname
                             }) + '.'}
                         </Callout>
                     );
@@ -356,7 +378,7 @@ export default class UserProfile extends Component {
                             <PostsList
                                 posts={posts}
                                 loading={fetching}
-                                category="recent_replies"
+                                category="replies"
                                 loadMore={this.loadMore}
                                 showPinned={false}
                                 showSpam={false}
@@ -372,14 +394,22 @@ export default class UserProfile extends Component {
                 );
             }
         } else if (section === 'notifications') {
+            const { authorMutedUsers } = this.state;
             if (username === accountname) {
                 tab_content = (
-                    <NotificationsList
-                        username={accountname}
-                        notifications={notifications && notifications.toJS()}
-                    />
+                    <div>
+                        <NotificationsList
+                            authorMutedUsers={authorMutedUsers}
+                            username={accountname}
+                            notifications={
+                                notifications && notifications.toJS()
+                            }
+                        />
+                    </div>
                 );
             }
+        } else if (section === 'info') {
+            tab_content = <WitnessVoters author={accountname} />;
         } else {
             //    console.log( "no matches" );
         }
@@ -389,12 +419,14 @@ export default class UserProfile extends Component {
             tab_content = <div>Unavailable For Legal Reasons.</div>;
         }
 
-        var page_title = '';
+        let page_title = '';
         // Page title
 
         if (isMyAccount) {
             if (section === 'blog') {
                 page_title = tt('g.my_blog');
+            } else if (section === 'posts') {
+                page_title = tt('g.my_posts');
             } else if (section === 'comments') {
                 page_title = tt('g.my_comments');
             } else if (section === 'recent-replies') {
@@ -405,17 +437,20 @@ export default class UserProfile extends Component {
         } else {
             if (section === 'blog') {
                 page_title = tt('g.blog');
+            } else if (section === 'posts') {
+                page_title = tt('g.posts');
             } else if (section === 'comments') {
                 page_title = tt('g.comments');
             } else if (section === 'recent-replies') {
                 page_title = tt('g.replies');
             } else if (section === 'settings') {
                 page_title = tt('g.settings');
+            } else if (section === 'info') {
+                // page_title = tt('g.settings')
+                page_title = 'Account Info';
             }
         }
-        const layoutClass = this.props.blogmode
-            ? 'layout-block'
-            : 'layout-list';
+        const layoutClass = blogmode ? 'layout-block' : 'layout-list';
 
         const blog_header = (
             <div>
@@ -449,7 +484,7 @@ export default class UserProfile extends Component {
                         )}
                     >
                         <article className="articles">
-                            {section === 'blog' || 'comments'
+                            {section === 'blog' || section === 'comments'
                                 ? blog_header
                                 : null}
                             {tab_content}
@@ -459,229 +494,33 @@ export default class UserProfile extends Component {
             );
         }
 
-        let rewardsMenu = [
-            {
-                link: `${walletUrl}/@${accountname}/curation-rewards`,
-                label: tt('g.curation_rewards'),
-                value: tt('g.curation_rewards'),
-            },
-            {
-                link: `${walletUrl}/@${accountname}/author-rewards`,
-                label: tt('g.author_rewards'),
-                value: tt('g.author_rewards'),
-            },
-        ];
-
-        const top_menu = (
-            <div className="row UserProfile__top-menu">
-                <div className="columns small-10 medium-12 medium-expand">
-                    <ul className="menu" style={{ flexWrap: 'wrap' }}>
-                        <li>
-                            <Link
-                                to={`/@${accountname}`}
-                                activeClassName="active"
-                            >
-                                {tt('g.blog')}
-                            </Link>
-                        </li>
-                        <li>
-                            <Link
-                                to={`/@${accountname}/comments`}
-                                activeClassName="active"
-                            >
-                                {tt('g.comments')}
-                            </Link>
-                        </li>
-                        <li>
-                            <Link
-                                to={`/@${accountname}/recent-replies`}
-                                activeClassName="active"
-                            >
-                                {tt('g.replies')}
-                            </Link>
-                        </li>
-                        {(username === accountname) &
-                        (
-                            <li>
-                                <Link
-                                    to={`/@${accountname}/notifications`}
-                                    activeClassName="active"
-                                >
-                                    {tt('g.notifications')}
-                                </Link>
-                            </li>
-                        )}
-                        <DropdownMenu
-                            items={rewardsMenu}
-                            el="li"
-                            selected={tt('g.rewards')}
-                            position="right"
-                        />
-                    </ul>
-                </div>
-                <div className="columns shrink">
-                    <ul className="menu" style={{ flexWrap: 'wrap' }}>
-                        <li>
-                            <a
-                                href={`${walletUrl}/@${accountname}`}
-                                target="_blank"
-                                className={walletClass}
-                            >
-                                {tt('g.wallet')}
-                            </a>
-                        </li>
-                        {isMyAccount && (
-                            <li>
-                                <Link
-                                    to={`/@${accountname}/settings`}
-                                    activeClassName="active"
-                                >
-                                    {tt('g.settings')}
-                                </Link>
-                            </li>
-                        )}
-                    </ul>
-                </div>
-            </div>
-        );
-
-        const { name, location, about, website, cover_image } =
-            normalizeProfile(account);
-
-        const website_label = website
-            ? website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '')
-            : null;
-
-        let cover_image_style = {};
-        if (cover_image) {
-            if (cover_image.match(/\.(gif)$/) !== null) {
-                cover_image_style = {
-                    backgroundImage: 'url(' + cover_image + ')',
-                };
-            } else {
-                cover_image_style = {
-                    backgroundImage:
-                        'url(' + proxifyImageUrl(cover_image, '2048x512') + ')',
-                };
-            }
-        }
-        let vestingShares = parseFloat(account.vesting_shares);
-        let delegatedVestingShares = parseFloat(
-            account.delegated_vesting_shares
-        );
-        let receivedVestingShares = parseFloat(account.received_vesting_shares);
-
-        let accountBp = parseInt(
-            (vestingShares - delegatedVestingShares + receivedVestingShares) *
-                this.props.blurtPerVest
-        );
         return (
             <div className="UserProfile">
-                <div className="UserProfile__banner row expanded">
-                    <div className="column" style={cover_image_style}>
-                        <div style={{ position: 'relative' }}>
-                            <div className="UserProfile__buttons hide-for-small-only">
-                                <Follow
-                                    follower={username}
-                                    following={accountname}
-                                />
-                            </div>
-                        </div>
-                        <h1>
-                            <Userpic account={account.name} hideIfDefault />
-                            {name || account.name}{' '}
-                            <Tooltip
-                                t={tt(
-                                    'user_profile.this_is_users_reputations_score_it_is_based_on_history_of_votes',
-                                    { name: accountname }
-                                )}
-                            >
-                                {/* <span className="UserProfile__rep">
-                                    ({rep})
-                                </span> */}
-                            </Tooltip>
-                            <Blacklist author={accountname} />
-                            {AffiliationMap[accountname] ? (
-                                <span className="affiliation">
-                                    {tt(
-                                        'g.affiliation_' +
-                                            AffiliationMap[accountname]
-                                    )}
-                                </span>
-                            ) : null}
-                        </h1>
-                        <div>
-                            {about && (
-                                <p className="UserProfile__bio">{about}</p>
-                            )}
-                            <div className="UserProfile__stats">
-                                <span>
-                                    <Link to={`/@${accountname}/followers`}>
-                                        {tt('user_profile.follower_count', {
-                                            count: followerCount,
-                                        })}
-                                    </Link>
-                                </span>
-                                <span>
-                                    <Link to={`/@${accountname}`}>
-                                        {tt('user_profile.post_count', {
-                                            count: account.post_count || 0,
-                                        })}
-                                    </Link>
-                                </span>
-                                <span>
-                                    <Link to={`/@${accountname}/followed`}>
-                                        {tt('user_profile.followed_count', {
-                                            count: followingCount,
-                                        })}
-                                    </Link>
-                                </span>
-                                <span>{accountBp} BP</span>
-                                <span>{parseInt(account.balance)} BLURT</span>
-                            </div>
-                            <p className="UserProfile__info">
-                                {location && (
-                                    <span>
-                                        <Icon name="location" /> {location}
-                                    </span>
-                                )}
-                                {website && (
-                                    <span>
-                                        <Icon name="link" />{' '}
-                                        <SanitizedLink
-                                            url={website}
-                                            text={website_label}
-                                        />
-                                    </span>
-                                )}
-                                <Icon name="calendar" />{' '}
-                                <DateJoinWrapper date={account.created} />
-                            </p>
-                        </div>
-                        <div className="UserProfile__buttons_mobile show-for-small-only">
-                            <Follow
-                                follower={username}
-                                following={accountname}
-                                what="blog"
-                            />
-                        </div>
-                    </div>
-                </div>
-                <div className="UserProfile__top-nav row expanded noPrint">
-                    {top_menu}
-                </div>
-                {section && section === 'blog' && profile.avatarUrl ? (
+                <UserProfileHeader
+                    accountname={accountname}
+                    profile={profile}
+                />
+                {section &&
+                section === 'blog' &&
+                profile.getIn(['metadata', 'profile', 'avatar_url']) ? (
                     <div
                         className="avatar"
                         style={{
-                            textAlign: "center",
-                            maxWidth: "480px",
-                            width: "320px",
-                            marginLeft: "auto",
-                            marginRight: "auto",
-                            boxShadow: "5px 5px 5px 5px #f24933"
-                        }}>
-                        <UserAvatar avatarUrl={profile.avatarUrl} />
+                            textAlign: 'center',
+                            maxWidth: '480px',
+                            width: '320px',
+                            marginLeft: 'auto',
+                            marginRight: 'auto',
+                            boxShadow: '5px 5px 5px 5px #f24933'
+                        }}
+                    >
+                        <UserAvatar
+                            avatarUrl={profile.getIn([
+                                'metadata',
+                                'profile',
+                                'avatar_url'
+                            ])}
+                        />
                     </div>
                 ) : (
                     <div />
@@ -699,41 +538,64 @@ module.exports = {
             const current_user = state.user.get('current');
             const accountname = ownProps.routeParams.accountname.toLowerCase();
             const walletUrl = state.app.get('walletUrl');
-            const blurtPerVest =
-                parseFloat(
-                    state.global.getIn(['props', 'total_vesting_fund_blurt'])
-                ) /
-                parseFloat(
-                    state.global.getIn(['props', 'total_vesting_shares'])
-                );
+            const userPreferences = state.app.get('user_preferences').toJS();
+            const reblogPref = userPreferences.reblogs || 'enabled';
+            let { section } = ownProps.routeParams;
+            if (!section || section === 'blog') section = 'blog';
+            else if (section === 'recent-replies') section = 'replies';
+            const order = [
+                'blog',
+                'posts',
+                'comments',
+                'replies',
+                'payout'
+            ].includes(section)
+                ? section
+                : null;
             return {
+                posts: state.global.getIn([
+                    'discussion_idx',
+                    '@' + accountname,
+                    order
+                ]),
                 discussions: state.global.get('discussion_idx'),
                 current_user,
+                section,
+                order,
+                profile: state.userProfiles.getIn(['profiles', accountname]),
                 loading: state.app.get('loading'),
                 global_status: state.global.get('status'),
-                accountname: accountname,
-                account: state.global.getIn(['accounts', accountname]),
+                accountname,
                 notifications: state.global.getIn(
                     ['notifications', accountname, 'notifications'],
                     null
                 ),
                 follow: state.global.get('follow'),
-                follow_count: state.global.get('follow_count'),
-                blurtPerVest,
                 blogmode:
                     state.app.getIn(['user_preferences', 'blogmode']) ===
                     undefined
-                        ? true
+                        ? false
                         : state.app.getIn(['user_preferences', 'blogmode']),
+                reblogPref,
                 walletUrl,
+                subscriptions: state.global.getIn([
+                    'subscriptions',
+                    accountname
+                ])
+                    ? state.global.getIn(['subscriptions', accountname]).toJS()
+                    : []
             };
         },
         (dispatch) => ({
             login: () => {
                 dispatch(userActions.showLogin());
             },
+            fetchProfile: (account, observer) =>
+                dispatch(
+                    UserProfilesSagaActions.fetchProfile({ account, observer })
+                ),
             requestData: (args) =>
-                dispatch(fetchDataSagaActions.requestData(args)),
+                dispatch(fetchDataSagaActions.requestData(args))
         })
-    )(UserProfile),
+    )(UserProfile)
 };

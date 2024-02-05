@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable react/jsx-one-expression-per-line */
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import Author from 'app/components/elements/Author';
 import ReplyEditor from 'app/components/elements/ReplyEditor';
@@ -19,6 +19,8 @@ import { repLog10, parsePayoutAmount } from 'app/utils/ParsersAndFormatters';
 import { Long } from 'bytebuffer';
 import { allowDelete } from 'app/utils/StateFunctions';
 import ImageUserBlockList from 'app/utils/ImageUserBlockList';
+import BadActorList from 'app/utils/BadActorList';
+import { SIGNUP_URL } from 'shared/constants';
 import ContentEditedWrapper from '../elements/ContentEditedWrapper';
 import Icon from '../elements/Icon';
 
@@ -96,11 +98,7 @@ export function sortComments(cont, comments, sort_order) {
     comments.sort(sort_orders[sort_order]);
 }
 
-class CommentImpl extends Component {
-    static defaultProps = {
-        depth: 1,
-    };
-
+class CommentImpl extends React.Component {
     static propTypes = {
         // html props
         cont: PropTypes.object.isRequired,
@@ -122,9 +120,21 @@ class CommentImpl extends Component {
         deletePost: PropTypes.func.isRequired,
     };
 
+    static defaultProps = {
+        depth: 1,
+    };
+
     constructor() {
         super();
-        this.state = { collapsed: false, hide_body: false, highlight: false, isShareLinkCopied: false};
+        this.state = {
+            collapsed: false,
+            hide_body: false,
+            highlight: false,
+            isShareLinkCopied: false,
+            revealNsfw: false,
+        };
+        this.onRevealNsfw = this.onRevealNsfw.bind(this);
+        this.revealBody = this.revealBody.bind(this);
         this.shouldComponentUpdate = shouldComponentUpdate(this, 'Comment');
         this.onShowReply = () => {
             const { showReply } = this.state;
@@ -142,12 +152,12 @@ class CommentImpl extends Component {
                 const content = cont.get(this.props.content);
                 const formId =
                     content.get('author') + '/' + content.get('permlink');
-                if (type)
+                if (type) {
                     localStorage.setItem(
                         'showEditor-' + formId,
                         JSON.stringify({ type }, null, 0)
                     );
-                else {
+                } else {
                     localStorage.removeItem('showEditor-' + formId);
                     localStorage.removeItem(
                         'replyEditorData-' + formId + '-reply'
@@ -171,14 +181,18 @@ class CommentImpl extends Component {
                 this.props.bandwidth_kbytes_fee
             );
         };
+        this.toggleCollapsed = this.toggleCollapsed.bind(this);
+    }
+
+    componentWillMount() {
+        this.initEditor(this.props);
+        this._checkHide(this.props);
     }
 
     componentDidMount() {
         if (window.location.hash == this.props.anchor_link) {
             this.setState({ highlight: true }); // eslint-disable-line react/no-did-mount-set-state
         }
-        this.initEditor(this.props);
-        this.checkHide(this.props);
     }
 
     /**
@@ -187,7 +201,7 @@ class CommentImpl extends Component {
      *    it hides the comment body (but not the header) until the "reveal comment" link is clicked.
      */
     // eslint-disable-next-line no-underscore-dangle
-    checkHide(props) {
+    _checkHide(props) {
         const content = props.cont.get(props.content);
         if (content) {
             const hide = hideSubtree(props.cont, props.content);
@@ -204,6 +218,37 @@ class CommentImpl extends Component {
             }
             this.setState({ hide, hide_body: notOwn && (hide || gray) });
         }
+    }
+
+    toggleCollapsed() {
+        this.setState({ collapsed: !this.state.collapsed });
+    }
+
+    onShareLink(comment) {
+        const { location } = window;
+        const url =
+            location.hostname === 'localhost'
+                ? 'http://' + location.hostname + ':' + location.port
+                : 'https://' + location.hostname;
+        const commentUrl = url + '/@' + comment;
+        if ('clipboard' in navigator) {
+            navigator.clipboard.writeText(commentUrl).then(() => {
+                this.setState({ isShareLinkCopied: true });
+                setTimeout(() => {
+                    this.setState({ isShareLinkCopied: false });
+                }, 2000);
+            });
+        } else {
+            document.execCommand('copy', true, commentUrl);
+            this.setState({ isShareLinkCopied: true });
+            setTimeout(() => {
+                this.setState({ isShareLinkCopied: false });
+            }, 2000);
+        }
+    }
+
+    revealBody() {
+        this.setState({ hide_body: false });
     }
 
     initEditor(props) {
@@ -230,39 +275,14 @@ class CommentImpl extends Component {
         this.setState({ PostReplyEditor, PostEditEditor });
     }
 
-    onShareLink(comment) {
-        const { location } = window
-        const url =
-                  location.hostname === 'localhost'
-                    ? 'http://' + location.hostname + ':' + location.port
-                    : 'https://' + location.hostname;
-        const commentUrl = url + '/@' + comment
-        if ('clipboard' in navigator) {
-          navigator.clipboard.writeText(commentUrl).then(() => {
-            this.setState({ isShareLinkCopied: true })
-            setTimeout(() => {
-              this.setState({ isShareLinkCopied: false })
-            }, 2000)
-          })
-        } else {
-          document.execCommand('copy', true, commentUrl)
-          this.setState({ isShareLinkCopied: true })
-          setTimeout(() => {
-            this.setState({ isShareLinkCopied: false })
-          }, 2000)
-        }
+    onRevealNsfw(e) {
+        e.preventDefault();
+        this.setState({ revealNsfw: true });
     }
 
-    revealBody = () => {
-        this.setState({ hide_body: false });
-    };
-
-    toggleCollapsed = () => {
-        this.setState({ collapsed: !this.state.collapsed });
-    };
-
     render() {
-        const { cont, content, authorMutedUsers } = this.props;
+        const { cont, content, authorMutedUsers, nsfwPref, nsfWPostsList } =
+            this.props;
         const { collapsed, isShareLinkCopied } = this.state;
         const dis = cont.get(content);
 
@@ -272,13 +292,26 @@ class CommentImpl extends Component {
 
         // Don't server-side render the comment if it has a certain number of newlines
         if (
-            global['process'] !== undefined &&
+            global.process !== undefined &&
             (dis.get('body').match(/\r?\n/g) || '').length > 25
         ) {
             return <div>{tt('g.loading')}...</div>;
         }
 
         const comment = dis.toJS();
+
+        // nsfw check
+
+        let isNsfw = false;
+        if (comment.post_id &&
+            nsfWPostsList.filter((nsfwPost) => nsfwPost.post_id === comment.post_id)
+                .length > 0
+        ) {
+            isNsfw = true;
+        }
+
+        if (isNsfw && nsfwPref === 'hide') return null;
+
         if (!comment.stats) {
             console.error('Comment -- missing stats object');
             comment.stats = {};
@@ -287,8 +320,10 @@ class CommentImpl extends Component {
         const authorRepLog10 = repLog10(comment.author_reputation);
         const { author, json_metadata } = comment;
 
-        const hideMuted = authorMutedUsers === undefined || authorMutedUsers.includes(comment.author);
-        if(hideMuted) return null
+        const hideMuted =
+            authorMutedUsers === undefined ||
+            authorMutedUsers.includes(comment.author);
+        if (hideMuted) return null;
 
         const {
             username,
@@ -330,34 +365,91 @@ class CommentImpl extends Component {
 
         // hide images if author is in blacklist
         const hideImages = ImageUserBlockList.includes(author);
+        const hideLinks = BadActorList.includes(author);
 
         const _isPaidout = comment.cashout_time === '1969-12-31T23:59:59'; // TODO: audit after HF19. #1259
         const showEditOption = username === author;
         const showDeleteOption =
             username === author && allowDelete(comment) && !_isPaidout;
+        // const showReplyOption = username !== undefined && comment.depth < 255;
         const showReplyOption =
-            username !== undefined && comment.depth < 255 && !authorMutedUsers.includes(username);
-        const showReplyBlockedOption = username !== undefined && comment.depth < 255 && authorMutedUsers.includes(username);
+            username !== undefined &&
+            comment.depth < 255 &&
+            !authorMutedUsers.includes(username);
+        const showReplyBlockedOption =
+            username !== undefined &&
+            comment.depth < 255 &&
+            authorMutedUsers.includes(username);
 
         let body = null;
         let controls = null;
 
         if (!collapsed && !hide_body) {
-            body = (
+            body = !isNsfw ? (
                 <MarkdownViewer
                     formId={post + '-viewer'}
                     text={comment.body}
                     noImage={noImage || gray}
                     hideImages={hideImages}
+                    hideLinks={hideLinks}
                     jsonMetadata={jsonMetadata}
                 />
+            ) : (
+                <div>
+                    {!this.state.revealNsfw && (
+                        <div>
+                            <span className="nsfw-flag">nsfw</span> &nbsp;
+                            &nbsp;
+                            <span role="button" onClick={this.onRevealNsfw}>
+                                <a>{tt('postsummary_jsx.reveal_it')}</a>
+                            </span>{' '}
+                            {tt('g.or') + ' '}
+                            {username ? (
+                                <span>
+                                    {tt('postsummary_jsx.adjust_your')}{' '}
+                                    <Link to={`/@${username}/settings`}>
+                                        {tt(
+                                            'postsummary_jsx.display_preferences'
+                                        )}
+                                    </Link>
+                                    .
+                                </span>
+                            ) : (
+                                <span>
+                                    <a href={SIGNUP_URL}>
+                                        {tt(
+                                            'postsummary_jsx.create_an_account'
+                                        )}
+                                    </a>{' '}
+                                    {tt(
+                                        'postsummary_jsx.to_save_your_preferences'
+                                    )}
+                                    .
+                                </span>
+                            )}
+                        </div>
+                    )}
+                    {this.state.revealNsfw && (
+                        <MarkdownViewer
+                            formId={post + '-viewer'}
+                            text={comment.body}
+                            noImage={noImage || gray}
+                            hideImages={hideImages}
+                            hideLinks={hideLinks}
+                            jsonMetadata={jsonMetadata}
+                        />
+                    )}
+                </div>
             );
 
             const { pricePerBlurt } = this.props;
+            let total_payout = comment.total_payout_value ? parsePayoutAmount(comment.total_payout_value) : 0
+            if (comment.author_payout_value && comment.curator_payout_value) {
+                total_payout = parsePayoutAmount(comment.author_payout_value) + parsePayoutAmount(comment.curator_payout_value);
+            }
             const totalAmount =
                 parsePayoutAmount(comment.pending_payout_value) +
-                parsePayoutAmount(comment.total_payout_value) +
-                parsePayoutAmount(comment.curator_payout_value);
+                total_payout
             const payoutValueInDollar = parseFloat(
                 totalAmount * pricePerBlurt
             ).toFixed(2);
@@ -378,9 +470,21 @@ class CommentImpl extends Component {
                         {showReplyOption && (
                             <a onClick={onShowReply}>{tt('g.reply')}</a>
                         )}{' '}
-                        {showReplyBlockedOption &&(
-                            <b title="Author of this post has blocked you from commenting">Reply Disabled</b>
+                        {showReplyBlockedOption && (
+                            <b title="Author of this post has blocked you from commenting">
+                                Reply Disabled
+                            </b>
                         )}
+                        {/* {isShareLinkCopied && (
+              <b>
+                <a onClick={onShareLink.bind(this, post)}>
+                  Copied !
+                </a>
+              </b>
+            )}{' '}
+            {!isShareLinkCopied && (
+              <a onClick={onShareLink.bind(this, post)}>Share</a>
+            )}{' '} */}
                         {showEditOption && (
                             <a onClick={onShowEdit}>{tt('g.edit')}</a>
                         )}{' '}
@@ -406,7 +510,7 @@ class CommentImpl extends Component {
                 replies = comment.replies;
                 sortComments(cont, replies, this.props.comments_sort_order);
                 // When a comment has hidden replies and is collapsed, the reply count is off
-                //console.log("replies:", replies.length, "num_visible:", replies.filter( reply => !cont.get(reply).getIn(['stats', 'hide'])).length)
+                // console.log("replies:", replies.length, "num_visible:", replies.filter( reply => !cont.get(reply).getIn(['stats', 'hide'])).length)
                 replies = replies.map((reply, idx) => (
                     <Comment
                         key={idx}
@@ -437,7 +541,7 @@ class CommentImpl extends Component {
         }
         if (this.state.highlight) innerCommentClass += ' highlighted';
 
-        //console.log(comment);
+        // console.log(comment);
         let renderedEditor = null;
         if (showReply || showEdit) {
             renderedEditor = (
@@ -490,6 +594,7 @@ class CommentImpl extends Component {
                                 <Userpic account={comment.author} />
                             </div>
                             <Author
+                                post={dis}
                                 author={comment.author}
                                 authorRepLog10={authorRepLog10}
                                 showAffiliation
@@ -499,19 +604,22 @@ class CommentImpl extends Component {
                         <Link to={comment_link} className="PlainLink">
                             <TimeAgoWrapper date={comment.created} />
                         </Link>
-                        &nbsp;
-                        &middot; &nbsp;
+                        &nbsp; &middot; &nbsp;
                         {isShareLinkCopied && (
                             <b>
-                                <a onClick={() => this.onShareLink(post)}><Icon name="link" /> Copied !</a>
+                                <a onClick={() => this.onShareLink(post)}>
+                                    <Icon name="link" /> Copied !
+                                </a>
                             </b>
                         )}{' '}
                         {!isShareLinkCopied && (
-                            <a onClick={() => this.onShareLink(post)}><Icon name="link" /></a>
+                            <a onClick={() => this.onShareLink(post)}>
+                                <Icon name="link" />
+                            </a>
                         )}{' '}
                         <ContentEditedWrapper
                             createDate={comment.created}
-                            updateDate={comment.last_update}
+                            updateDate={comment.updated}
                         />
                         {(collapsed || hide_body) && (
                             <Voting post={post} showList={false} />
@@ -568,6 +676,10 @@ const Comment = connect(
               ])
             : null;
 
+        const userPreferences = state.app.get('user_preferences').toJS();
+        const nsfwPref = userPreferences.nsfwPref || 'warn';
+        const nsfWPostsList = state.offchain.get('nsfw').toJS().nsfw;
+
         return {
             ...ownProps,
             anchor_link: '#@' + content, // Using a hash here is not standard but intentional; see issue #124 for details
@@ -586,6 +698,8 @@ const Comment = connect(
                 'bandwidth_kbytes_fee',
             ]),
             pricePerBlurt: state.global.getIn(['props', 'price_per_blurt']),
+            nsfWPostsList,
+            nsfwPref,
         };
     },
 
@@ -600,16 +714,16 @@ const Comment = connect(
             operationFlatFee,
             bandwidthKbytesFee
         ) => {
-            let operation = { author, permlink };
-            let size = JSON.stringify(operation).replace(
+            const operation = { author, permlink };
+            const size = JSON.stringify(operation).replace(
                 /[\[\]\,\"]/g,
                 ''
             ).length;
-            let bw_fee = Math.max(
+            const bw_fee = Math.max(
                 0.001,
                 ((size / 1024) * bandwidthKbytesFee).toFixed(3)
             );
-            let fee = (operationFlatFee + bw_fee).toFixed(3);
+            const fee = (operationFlatFee + bw_fee).toFixed(3);
             dispatch(
                 transactionActions.broadcastOperation({
                     type: 'delete_comment',

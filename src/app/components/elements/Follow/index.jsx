@@ -1,7 +1,4 @@
-/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-/* eslint-disable jsx-a11y/click-events-have-key-events */
-/* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import LoadingIndicator from 'app/components/elements/LoadingIndicator';
@@ -11,43 +8,36 @@ import * as userActions from 'app/redux/UserReducer';
 import { Set, Map } from 'immutable';
 import tt from 'counterpart';
 
-const { string, bool } = PropTypes;
+const { string, bool, any } = PropTypes;
 
-class Follow extends Component {
-    static defaultProps = {
-        showFollow: true,
-        showMute: true,
-        fat: false,
-    };
-
+export default class Follow extends React.Component {
     static propTypes = {
         following: string,
         follower: string, // OPTIONAL default to current user
         showFollow: bool,
         showMute: bool,
         fat: bool,
-        children: PropTypes.any,
+        children: any,
         showLogin: PropTypes.func.isRequired,
+    };
+
+    static defaultProps = {
+        showFollow: true,
+        showMute: true,
+        fat: false,
     };
 
     constructor(props) {
         super();
         this.state = {};
         this.initEvents(props);
+        this.followLoggedOut = this.followLoggedOut.bind(this);
         this.shouldComponentUpdate = shouldComponentUpdate(this, 'Follow');
     }
 
-    UNSAFE_componentWillUpdate(nextProps) {
+    componentWillUpdate(nextProps) {
         this.initEvents(nextProps);
     }
-
-    followLoggedOut = (e) => {
-        // close author preview if present
-        const author_preview = document.querySelector('.dropdown-pane.is-open');
-        if (author_preview) author_preview.remove();
-        // resume authenticate modal
-        this.props.showLogin(e);
-    };
 
     initEvents(props) {
         const {
@@ -86,16 +76,22 @@ class Follow extends Component {
         };
     }
 
+    followLoggedOut(e) {
+        // close author preview if present
+        const author_preview = document.querySelector('.dropdown-pane.is-open');
+        if (author_preview) author_preview.remove();
+        // resume authenticate modal
+        this.props.showLogin(e);
+    }
+
     render() {
         const { loading } = this.props;
-        if (loading) return (
-            <span>
-                <LoadingIndicator />
-                {' '}
-                {tt('g.loading')}
-                &hellip;
-            </span>
-        );
+        if (loading)
+            return (
+                <span>
+                    <LoadingIndicator /> {tt('g.loading')}&hellip;
+                </span>
+            );
         if (loading !== false) {
             // must know what the user is already following before any update can happen
             return <span />;
@@ -103,23 +99,22 @@ class Follow extends Component {
 
         const { follower, following } = this.props; // html
         // Show follow preview for new users
-        if (!follower || !following) return (
-            <span>
-                <label
-                    className="button slim hollow secondary"
-                    onClick={this.followLoggedOut}
-                >
-                    {tt('g.follow')}
-                </label>
-            </span>
-        );
+        if (!follower || !following)
+            return (
+                <span>
+                    <label
+                        className="button slim hollow secondary"
+                        onClick={this.followLoggedOut}
+                    >
+                        {tt('g.follow')}
+                    </label>
+                </span>
+            );
         // Can't follow or ignore self
         if (follower === following) return <span />;
 
         const { followingWhat } = this.props; // redux
-        const {
-            showFollow, showMute, fat, children
-        } = this.props; // html
+        const { showFollow, showMute, fat, children } = this.props; // html
         const { busy } = this.state;
 
         const cnBusy = busy ? 'disabled' : '';
@@ -151,12 +146,7 @@ class Follow extends Component {
                     </label>
                 )}
 
-                {children && (
-                    <span>
-                        &nbsp;&nbsp;
-                        {children}
-                    </span>
-                )}
+                {children && <span>&nbsp;&nbsp;{children}</span>}
             </span>
         );
     }
@@ -165,7 +155,7 @@ class Follow extends Component {
 const emptyMap = Map();
 const emptySet = Set();
 
-export default connect(
+module.exports = connect(
     (state, ownProps) => {
         let { follower } = ownProps;
         if (!follower) {
@@ -186,8 +176,8 @@ export default connect(
         const followingWhat = f.get('blog_result', emptySet).contains(following)
             ? 'blog'
             : f.get('ignore_result', emptySet).contains(following)
-                ? 'ignore'
-                : null;
+            ? 'ignore'
+            : null;
 
         return {
             follower,
@@ -215,18 +205,18 @@ export default connect(
         ) => {
             const what = action ? [action] : [];
             const json = ['follow', { follower, following, what }];
-            const operation = {
+            let operation = {
                 id: 'follow',
                 required_posting_auths: [follower],
                 json: JSON.stringify(json),
             };
-            const size = JSON.stringify(operation).replace(/[\[\]\,\"]/g, '')
+            let size = JSON.stringify(operation).replace(/[\[\]\,\"]/g, '')
                 .length;
-            const bw_fee = Math.max(
+            let bw_fee = Math.max(
                 0.001,
                 ((size / 1024) * bandwidthKbytesFee).toFixed(3)
             );
-            const fee = (operationFlatFee + bw_fee).toFixed(3);
+            let fee = (operationFlatFee + bw_fee).toFixed(3);
             dispatch(
                 transactionActions.broadcastOperation({
                     type: 'custom_json',

@@ -1,5 +1,5 @@
 export const loadUserTemplates = (username) => {
-    const templateEntryName = `blurtPostTemplates-` + username;
+    const templateEntryName = 'blurtPostTemplates-' + username;
     let userTemplates = localStorage.getItem(templateEntryName);
     if (userTemplates) {
         userTemplates = JSON.parse(userTemplates);
@@ -11,6 +11,6 @@ export const loadUserTemplates = (username) => {
 };
 
 export const saveUserTemplates = (username, templates) => {
-    const templateEntryName = `blurtPostTemplates-` + username;
+    const templateEntryName = 'blurtPostTemplates-' + username;
     localStorage.setItem(templateEntryName, JSON.stringify(templates));
 };

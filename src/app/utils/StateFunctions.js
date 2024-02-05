@@ -5,8 +5,14 @@ import { Long } from 'bytebuffer';
 import { VEST_TICKER, LIQUID_TICKER } from 'app/client_config';
 import { fromJS } from 'immutable';
 
-export const numberWithCommas = (x) => x.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-
+export const numberWithCommas = (x) => {
+    try {
+        return (typeof x === "number") ? x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') : x.replace(/\B(?=(\d{3})+(?!\d))/g, ',');        
+    } catch (error) {
+        console.log(x, "value - numberWithCommas", error);
+        return x
+    }
+}
 export function isFetchingOrRecentlyUpdated(global_status, order, category) {
     const status = global_status
         ? global_status.getIn([category || '', order])

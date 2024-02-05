@@ -20,6 +20,7 @@ cristinaluchi
 dennis.spiedt
 sebtarnowski
 mihailm
+amicablepeace
 `
     .trim()
     .split('\n');

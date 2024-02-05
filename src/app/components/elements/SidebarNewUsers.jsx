@@ -1,5 +1,6 @@
-import tt from 'counterpart';
-import { SIGNUP_URL } from 'shared/constants';
+import React from 'react';
+// import tt from 'counterpart';
+// import { SIGNUP_URL } from 'shared/constants';
 
 const SidebarNewUsers = () => (
     <div className="c-sidebar__module">
@@ -24,7 +25,7 @@ const SidebarNewUsers = () => (
                 <li className="c-sidebar__list-item">
                     <a
                         className="c-sidebar__link"
-                        href="https://blurtwallet.alloyxuast.co.uk/~witnesses"
+                        href={`${$STM_Config.wallet_url}/~witnesses`}
                     >
                         Vote for Witnesses
                     </a>
@@ -32,7 +33,7 @@ const SidebarNewUsers = () => (
                 <li className="c-sidebar__list-item">
                     <a
                         className="c-sidebar__link"
-                        href="https://blurtwallet.alloyxuast.co.uk/proposals"
+                        href={`${$STM_Config.wallet_url}/proposals`}
                     >
                         Blurt Proposals
                     </a>

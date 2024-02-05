@@ -1,4 +1,5 @@
-import { Component } from 'react';
+/* global $STM_Config */
+import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import Icon from '../elements/Icon';
 
@@ -26,7 +27,7 @@ class DappsList extends Component {
                                             <h5>
                                                 <a
                                                     href={
-                                                        'https://blurt.blog/' +
+                                                        `https://${$STM_Config.site_domain}/` +
                                                         item.user
                                                     }
                                                 >

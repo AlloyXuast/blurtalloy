@@ -1,3 +1,4 @@
+import React from 'react';
 import { storiesOf } from '@storybook/react';
 import HelpTip from './index';
 import IconButton from '../IconButton';

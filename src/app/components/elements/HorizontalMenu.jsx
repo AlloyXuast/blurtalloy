@@ -1,12 +1,12 @@
-/* eslint-disable react/static-property-placement */
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router';
 import Icon from 'app/components/elements/Icon';
+import tt from 'counterpart';
 
-export default class HorizontalMenu extends Component {
+export default class HorizontalMenu extends React.Component {
     static propTypes = {
-        items: PropTypes.objectOf(PropTypes.object).isRequired,
+        items: PropTypes.arrayOf(PropTypes.object).isRequired,
         title: PropTypes.string,
         className: PropTypes.string,
         hideValue: PropTypes.string,

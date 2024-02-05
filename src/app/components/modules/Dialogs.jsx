@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import CloseButton from 'app/components/elements/CloseButton';
@@ -10,13 +10,14 @@ import QrReader from 'app/components/elements/QrReader';
 import CheckLoginOwner from 'app/components/elements/CheckLoginOwner';
 import PromotePost from 'app/components/modules/PromotePost';
 import ExplorePost from 'app/components/modules/ExplorePost';
+import CommunitySubscriberList from './CommunitySubscriberList';
+import NotificationsList from '../cards/NotificationsList';
 
-class Dialogs extends Component {
+class Dialogs extends React.Component {
     static propTypes = {
         active_dialogs: PropTypes.object,
         hide: PropTypes.func.isRequired,
     };
-
     constructor() {
         super();
         this.shouldComponentUpdate = shouldComponentUpdate(this, 'Dialogs');
@@ -24,14 +25,12 @@ class Dialogs extends Component {
             this.props.hide(name);
         };
     }
-
-    UNSAFE_componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps) {
         const { active_dialogs, hide } = nextProps;
         active_dialogs.forEach((v, k) => {
             if (!this['hide_' + k]) this['hide_' + k] = () => hide(k);
         });
     }
-
     render() {
         const { active_dialogs } = this.props;
         let idx = 0;
@@ -68,6 +67,30 @@ class Dialogs extends Component {
                             <ExplorePost
                                 onClick={this['hide_' + k]}
                                 {...v.get('params').toJS()}
+                            />
+                        </Reveal>
+                    </span>
+                ) : k === 'communitySubscribers' ? (
+                    <span key={`dialog-${k}`}>
+                        <Reveal onHide={this['hide_' + k]} show>
+                            <CloseButton onClick={this['hide_' + k]} />
+                            <CommunitySubscriberList
+                                onClick={this['hide_' + k]}
+                                {...v.get('params').toJS()}
+                            />
+                        </Reveal>
+                    </span>
+                ) : k === 'communityModerationLog' ? (
+                    <span key={`dialog-${k}`}>
+                        <Reveal onHide={this['hide_' + k]} show>
+                            <CloseButton onClick={this['hide_' + k]} />
+                            <NotificationsList
+                                username={v.getIn([
+                                    'params',
+                                    'community',
+                                    'name',
+                                ])}
+                                isLastPage={false}
                             />
                         </Reveal>
                     </span>

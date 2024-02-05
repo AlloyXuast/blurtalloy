@@ -1,22 +1,13 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-/* eslint-disable react/static-property-placement */
-/* eslint-disable react/sort-comp */
-import PropTypes from 'prop-types';
-import React, { Component } from 'react';
+import React from 'react';
 import Autocomplete from 'react-autocomplete';
 import shouldComponentUpdate from 'app/utils/shouldComponentUpdate';
 import { validate_account_name } from 'app/utils/ChainValidation';
+import reactForm from 'app/utils/ReactForm';
 import { List, Set } from 'immutable';
 import tt from 'counterpart';
+import PropTypes from 'prop-types';
 
-import { connect } from 'react-redux';
-
-export class BeneficiarySelector extends Component {
-
-    static defaultProps = {
-        id: 'BeneficiarySelectorId',
-    };
-
+export class BeneficiarySelector extends React.Component {
     static propTypes = {
         // HTML props
         id: PropTypes.string, // DOM id for active component (focusing, etc...)
@@ -28,7 +19,9 @@ export class BeneficiarySelector extends Component {
         // redux connect
         following: PropTypes.array.isRequired,
     };
-
+    static defaultProps = {
+        id: 'BeneficiarySelectorId',
+    };
     constructor() {
         super();
         this.shouldComponentUpdate = shouldComponentUpdate(
@@ -37,24 +30,26 @@ export class BeneficiarySelector extends Component {
         );
     }
 
+    matchAutocompleteUser(item, value) {
+        return item.toLowerCase().indexOf(value.toLowerCase()) > -1;
+    }
+
     handleAddBeneficiary = (e) => {
         e.preventDefault();
         const beneficiaries = this.props.value;
-        if (beneficiaries.length < 8) {
+        const { category } = this.props;
+        const categoryValue = (category && /^blurt-[0-9]*$/.test(category)) ? 1 : 0
+        if (beneficiaries.length < 8 - categoryValue) {
             this.props.onChange(
                 beneficiaries.concat([{ username: '', percent: '' }])
             );
         }
     };
 
-    handleBeneficiaryPercentChange = (idx) => (e) => {
+    handleRemoveBeneficiary = (idx) => (e) => {
         e.preventDefault();
         const beneficiaries = this.props.value;
-        const newBeneficiaries = beneficiaries.map((beneficiary, bidx) => {
-            if (idx != bidx) return beneficiary;
-            return { ...beneficiary, percent: e.target.value };
-        });
-        this.props.onChange(newBeneficiaries);
+        this.props.onChange(beneficiaries.filter((s, bidx) => idx != bidx));
     };
 
     handleBeneficiaryUserChange = (idx) => (e) => {
@@ -76,21 +71,23 @@ export class BeneficiarySelector extends Component {
         this.props.onChange(newBeneficiaries);
     };
 
-    handleRemoveBeneficiary = (idx) => (e) => {
+    handleBeneficiaryPercentChange = (idx) => (e) => {
         e.preventDefault();
         const beneficiaries = this.props.value;
-        this.props.onChange(beneficiaries.filter((s, bidx) => idx != bidx));
+        const newBeneficiaries = beneficiaries.map((beneficiary, bidx) => {
+            if (idx != bidx) return beneficiary;
+            return { ...beneficiary, percent: e.target.value };
+        });
+        this.props.onChange(newBeneficiaries);
     };
 
-    matchAutocompleteUser(item, value) {
-        return item.toLowerCase().indexOf(value.toLowerCase()) > -1;
-    }
-
     render() {
-        const { username, following, tabIndex } = this.props;
+        const { username, following, tabIndex, category } = this.props;
         const beneficiaries = this.props.value;
-        const remainingPercent = 100
-            - beneficiaries
+        const categoryValue = (category && /^blurt-[0-9]*$/.test(category)) ? 1 : 0
+        const remainingPercent =
+            100 - (categoryValue * 3) -
+            beneficiaries
                 .map((b) => (b.percent ? parseInt(b.percent) : 0))
                 .reduce((sum, elt) => sum + elt, 0);
 
@@ -124,6 +121,36 @@ export class BeneficiarySelector extends Component {
                         </div>
                     </div>
                 </div>
+                {(category && /^blurt-[0-9]*$/.test(category)) &&
+                     (<div className="row">
+                        <div className="column small-2">
+                            <div className="input-group">
+                                <input
+                                    id="remainingPercent"
+                                    type="text"
+                                    pattern="[0-9]*"
+                                    value={3}
+                                    disabled
+                                    className="BeneficiarySelector__percentbox"
+                                />
+                                <span className="BeneficiarySelector__percentrow">
+                                    %
+                                </span>
+                            </div>
+                        </div>
+                        <div className="column small-5">
+                            <div className="input-group">
+                                <span className="input-group-label">@</span>
+                                <input
+                                    className="input-group-field bold"
+                                    type="text"
+                                    disabled
+                                    value={category}
+                                />
+                            </div>
+                        </div>
+                    </div>)
+                }
                 {beneficiaries.map((beneficiary, idx) => (
                     <div className="row" key={idx}>
                         <div className="column small-2">
@@ -136,7 +163,6 @@ export class BeneficiarySelector extends Component {
                                     onChange={this.handleBeneficiaryPercentChange(
                                         idx
                                     )}
-                                    disabled={beneficiary.username === 'alloyxuast'}
                                     className="BeneficiarySelector__percentbox"
                                 />
                                 <span className="BeneficiarySelector__percentrow">
@@ -147,13 +173,12 @@ export class BeneficiarySelector extends Component {
                         <div className="column small-5">
                             <div className="input-group">
                                 <span className="input-group-label">@</span>
-                                {beneficiary.username !== 'alloyxuast' ? (
-                                    <Autocomplete
-                                        wrapperStyle={{
+                                <Autocomplete
+                                    wrapperStyle={{
                                         display: 'inline-block',
                                         width: '100%',
                                     }}
-                                        inputProps={{
+                                    inputProps={{
                                         id: 'user',
                                         type: 'text',
                                         className: 'input-group-field',
@@ -162,56 +187,45 @@ export class BeneficiarySelector extends Component {
                                         autoCapitalize: 'off',
                                         spellCheck: 'false',
                                     }}
-                                        renderMenu={(items) => (
-                                            <div
-                                                className="react-autocomplete-input"
-                                                children={items}
+                                    renderMenu={(items) => (
+                                        <div
+                                            className="react-autocomplete-input"
+                                            children={items}
                                         />
                                     )}
-                                        getItemValue={(item) => item}
-                                        items={this.props.following}
-                                        shouldItemRender={
+                                    getItemValue={(item) => item}
+                                    items={this.props.following}
+                                    shouldItemRender={
                                         this.matchAutocompleteUser
                                     }
-                                        renderItem={(item, isHighlighted) => (
-                                            <div
-                                                className={
+                                    renderItem={(item, isHighlighted) => (
+                                        <div
+                                            className={
                                                 isHighlighted ? 'active' : ''
                                             }
                                         >
-                                                {item}
-                                            </div>
+                                            {item}
+                                        </div>
                                     )}
-                                        value={beneficiary.username}
-                                        onChange={this.handleBeneficiaryUserChange(
+                                    value={beneficiary.username}
+                                    onChange={this.handleBeneficiaryUserChange(
                                         idx
                                     )}
-                                        disabled={beneficiary.username === 'alloyxuast'}
-                                        onSelect={this.handleBeneficiaryUserSelect(
+                                    onSelect={this.handleBeneficiaryUserSelect(
                                         idx
                                     )}
                                 />
-                                ):(
-                                    <input
-                                        className="input-group-field bold"
-                                        type="text"
-                                        disabled
-                                        value={beneficiary.username}
-                                />
-                                )}
                             </div>
                         </div>
-                        {beneficiary.username !== 'alloyxuast' ? (
-                            <div className="BeneficiarySelector__percentrow column small-5">
-                                <a
-                                    id="remove"
-                                    href="#"
-                                    onClick={this.handleRemoveBeneficiary(idx)}
+                        <div className="BeneficiarySelector__percentrow column small-5">
+                            <a
+                                id="remove"
+                                href="#"
+                                onClick={this.handleRemoveBeneficiary(idx)}
                             >
-                                    {tt('g.remove')}
-                                </a>
-                            </div>
-                        ):<b>Default Beneficiary for AlloyXuast frontend</b>}
+                                {tt('g.remove')}
+                            </a>
+                        </div>
                     </div>
                 ))}
                 <div className="row">
@@ -220,7 +234,7 @@ export class BeneficiarySelector extends Component {
                             id="add"
                             href="#"
                             onClick={this.handleAddBeneficiary}
-                            hidden={beneficiaries.length >= 8}
+                            hidden={beneficiaries.length >= 8 - categoryValue}
                         >
                             {tt('beneficiary_selector_jsx.add')}
                         </a>
@@ -234,15 +248,20 @@ export class BeneficiarySelector extends Component {
 export function validateBeneficiaries(
     username,
     beneficiaries,
+    category,
     required = true
 ) {
-    if (beneficiaries.length > 8) {
+    const categoryValue = (category && /^blurt-[0-9]*$/.test(category)) ? 1 : 0
+    const remainingPercent =
+        100 - categoryValue * 3
+    const maxBeneficiaries = 8 - categoryValue
+    if (beneficiaries.length > maxBeneficiaries) {
         return tt('beneficiary_selector_jsx.exceeds_max_beneficiaries');
     }
-    let totalPercent = 0;
+    var totalPercent = 0;
 
-    let beneficiaryNames = Set();
-    for (let i = 0; i < beneficiaries.length; i++) {
+    var beneficiaryNames = Set();
+    for (var i = 0; i < beneficiaries.length; i++) {
         const beneficiary = beneficiaries[i];
         const accountError = validate_account_name(beneficiary.username, '');
         if ((required || beneficiary.username) && accountError) {
@@ -255,21 +274,23 @@ export function validateBeneficiaries(
             return tt(
                 'beneficiary_selector_jsx.beneficiary_cannot_be_duplicate'
             );
-        }
+        } else {
             beneficiaryNames = beneficiaryNames.add(beneficiary.username);
-
+        }
         if (
-            (required || beneficiary.percent)
-            && !/^[1-9]\d{0,2}$/.test(beneficiary.percent)
+            (required || beneficiary.percent) &&
+            !/^[1-9]\d{0,2}$/.test(beneficiary.percent)
         ) {
             return tt('beneficiary_selector_jsx.beneficiary_percent_invalid');
         }
         totalPercent += parseInt(beneficiary.percent);
     }
-    if (totalPercent > 100) {
+    if (totalPercent > remainingPercent) {
         return tt('beneficiary_selector_jsx.beneficiary_percent_total_invalid');
     }
 }
+
+import { connect } from 'react-redux';
 
 export default connect((state, ownProps) => {
     let following = List();

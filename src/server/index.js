@@ -30,6 +30,7 @@ global.$STM_Config = {
     ipfs_prefix: config.get('ipfs_prefix'),
     price_info_url: config.get('price_info_url'),
     coal_url: config.get('coal_url'),
+    phishing_url: config.get('phishing_url'),
     read_only_mode: config.get('read_only_mode'),
     upload_image: config.get('upload_image'),
     site_domain: config.get('site_domain'),

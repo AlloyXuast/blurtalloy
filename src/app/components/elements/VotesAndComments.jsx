@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router';
 import { connect } from 'react-redux';
@@ -6,7 +6,7 @@ import Icon from 'app/components/elements/Icon';
 import shouldComponentUpdate from 'app/utils/shouldComponentUpdate';
 import tt from 'counterpart';
 
-class VotesAndComments extends Component {
+class VotesAndComments extends React.Component {
     static propTypes = {
         // HTML properties
         post: PropTypes.string.isRequired,

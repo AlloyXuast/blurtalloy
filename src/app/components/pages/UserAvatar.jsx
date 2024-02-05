@@ -1,6 +1,6 @@
-import { Component } from 'react';
+import React from 'react';
 
-export default class UserAvatar extends Component {
+export default class UserAvatar extends React.Component {
     componentDidMount() {
         // to load google model viewer script
         const script = document.createElement('script');

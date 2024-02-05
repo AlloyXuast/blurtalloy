@@ -54,6 +54,7 @@ async function appRender(ctx, locales = false, resolvedAssets = false) {
             config: $STM_Config,
             special_posts: await ctx.app.specialPostsPromise,
             dapps: await ctx.app.dappsPromise,
+            nsfw: await ctx.app.nsfwPostsPromise,
             login_challenge,
         };
 
@@ -77,14 +78,14 @@ async function appRender(ctx, locales = false, resolvedAssets = false) {
         const initial_state = {
             app: {
                 viewMode: determineViewMode(ctx.request.search),
-                googleAds: googleAds,
+                googleAds,
                 env: process.env.NODE_ENV,
                 walletUrl: config.wallet_url,
                 steemMarket: ctx.steemMarketData,
             },
         };
 
-        const { body, title, statusCode, meta } = await serverRender(
+        const { body, title, statusCode, meta, redirectUrl } = await serverRender(
             ctx.request.url,
             initial_state,
             ErrorPage,
@@ -92,6 +93,13 @@ async function appRender(ctx, locales = false, resolvedAssets = false) {
             offchain,
             ctx.state.requestTimer
         );
+
+        if (redirectUrl) {
+            console.log('Redirecting to', redirectUrl);
+            ctx.status = 302;
+            ctx.redirect(redirectUrl);
+            return;
+        }
 
         let assets;
         // If resolvedAssets argument parameter is falsey we infer that we are in

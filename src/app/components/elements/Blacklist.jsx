@@ -24,7 +24,6 @@ class Blacklist extends Component {
                         .
                     </p>
                 );
-
                 return (
                     <HelpTip content={description}>
                         <Icon name="alert" />
@@ -36,11 +35,11 @@ class Blacklist extends Component {
     }
 }
 
+// eslint-disable-next-line no-unused-vars
 export default connect((state, ownProps) => {
-    // const userPreferences = state.app.get('user_preferences').toJS();
-    const coalStatus = 'enabled';
-    const blacklist =
-        state.global.getIn(['blacklist']) == undefined
+    const userPreferences = state.app.get('user_preferences').toJS();
+    const coalStatus = userPreferences.coalStatus || 'enabled';
+    const blacklist = state.global.getIn(['blacklist']) == undefined
             ? undefined
             : state.global.getIn(['blacklist']);
     return {

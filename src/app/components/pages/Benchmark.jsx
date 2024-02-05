@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import Icon, { icons } from 'app/components/elements/Icon';
 
 const styles = {
@@ -10,7 +10,7 @@ const styles = {
 
 const Grid = ({ children }) => <div style={styles}>{children}</div>;
 
-class Benchmark extends Component {
+class Benchmark extends React.Component {
     render() {
         return (
             <Grid>

@@ -1,3 +1,4 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Component } from 'react';
@@ -23,14 +24,6 @@ const remarkableToSpec = new Remarkable({
 });
 
 class MarkdownViewer extends Component {
-    static defaultProps = {
-        allowDangerousHTML: false,
-        breaks: true,
-        className: '',
-        hideImages: false,
-        large: false,
-    };
-
     static propTypes = {
         // HTML properties
         text: PropTypes.string,
@@ -41,8 +34,18 @@ class MarkdownViewer extends Component {
         noImage: PropTypes.bool,
         allowDangerousHTML: PropTypes.bool,
         hideImages: PropTypes.bool, // whether to replace images with just a span containing the src url
+        hideLinks: PropTypes.bool, // whether to replace images with just a span containing the src url
         breaks: PropTypes.bool, // true to use bastardized markdown that cares about newlines
         // used for the ImageUserBlockList
+    };
+
+    static defaultProps = {
+        allowDangerousHTML: false,
+        breaks: true,
+        className: '',
+        hideImages: false,
+        hideLinks: false,
+        large: false,
     };
 
     constructor() {
@@ -63,7 +66,7 @@ class MarkdownViewer extends Component {
     };
 
     render() {
-        const { noImage, hideImages } = this.props;
+        const { noImage, hideImages, hideLinks } = this.props;
         const { allowNoImage } = this.state;
         let { text } = this.props;
         if (!text) text = ''; // text can be empty, still view the link meta data
@@ -104,7 +107,10 @@ class MarkdownViewer extends Component {
 
         // Embed videos, link mentions and hashtags, etc...
         if (renderedText)
-            renderedText = HtmlReady(renderedText, { hideImages }).html;
+            renderedText = HtmlReady(renderedText, {
+                hideImages,
+                hideLinks,
+            }).html;
 
         // Complete removal of javascript and other dangerous tags..
         // The must remain as close as possible to dangerouslySetInnerHTML

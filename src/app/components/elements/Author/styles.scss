@@ -24,3 +24,16 @@
         }
     }
 }
+
+span.affiliation-edit {
+    margin: 0 0.25rem 0 0.5rem;
+    padding: 0;
+}
+
+.Icon_0_8x > svg, span.Icon_0_8x {
+    width: 0.8rem;
+    height: 0.8rem;
+    fill: $color-text-gray;
+    vertical-align: unset;
+    padding-top: 0.15rem;
+}

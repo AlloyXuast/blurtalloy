@@ -1,11 +1,11 @@
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router';
 import Icon from 'app/components/elements/Icon';
 
-export default class VerticalMenu extends Component {
+export default class VerticalMenu extends React.Component {
     static propTypes = {
-        items: PropTypes.any,
+        items: PropTypes.arrayOf(PropTypes.object).isRequired,
         title: PropTypes.string,
         className: PropTypes.string,
         hideValue: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
@@ -35,7 +35,11 @@ export default class VerticalMenu extends Component {
                         <li key={i.value} onClick={this.closeMenu}>
                             {i.link ? (
                                 i.link.match(/^http(s?)/) ? (
-                                    <a href={i.link} target="_blank">
+                                    <a
+                                        href={i.link}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
                                         {i.icon && <Icon name={i.icon} />}
                                         {i.label ? i.label : i.value}
                                         {i.addon}

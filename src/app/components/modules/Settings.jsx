@@ -1,4 +1,5 @@
-import { Component } from 'react';
+/* eslint-disable react/jsx-indent */
+import React from 'react';
 import { connect } from 'react-redux';
 import tt from 'counterpart';
 import * as userActions from 'app/redux/UserReducer';
@@ -6,28 +7,72 @@ import * as appActions from 'app/redux/AppReducer';
 import UserList from 'app/components/elements/UserList';
 import * as blurt from '@blurtfoundation/blurtjs';
 
-class Settings extends Component {
+class Settings extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             errorMessage: '',
             successMessage: '',
         };
+        this.onNsfwPrefChange = this.onNsfwPrefChange.bind(this);
+        this.onCoalStatusChange = this.onCoalStatusChange.bind(this);
+        this.onReblogPrefChange = this.onReblogPrefChange.bind(this);
     }
 
-    onNsfwPrefChange = e => {
+    onNsfwPrefChange(e) {
         this.props.setUserPreferences({
             ...this.props.user_preferences,
             nsfwPref: e.currentTarget.value,
         });
+    }
+
+    onReblogPrefChange(e) {
+        this.props.setUserPreferences({
+            ...this.props.user_preferences,
+            reblogs: e.currentTarget.value,
+        });
+    }
+
+    onCoalStatusChange(e) {
+        this.props.setUserPreferences({
+            ...this.props.user_preferences,
+            coalStatus: e.currentTarget.value,
+        });
+    }
+
+    handleDefaultBlogPayoutChange = (event) => {
+        this.props.setUserPreferences({
+            ...this.props.user_preferences,
+            defaultBlogPayout: event.target.value,
+        });
+    };
+
+    handleDefaultCommentPayoutChange = (event) => {
+        this.props.setUserPreferences({
+            ...this.props.user_preferences,
+            defaultCommentPayout: event.target.value,
+        });
+    };
+
+    handleDefaultCommentsSortOrderChange = (event) => {
+        this.props.setUserPreferences({
+            ...this.props.user_preferences,
+            defaultCommentsSortOrder: event.target.value,
+        });
+    };
+
+    handleLanguageChange = (event) => {
+        const locale = event.target.value;
+        const userPreferences = { ...this.props.user_preferences, locale };
+        this.props.setUserPreferences(userPreferences);
     };
 
     getPreferredApiEndpoint = () => {
         let preferred_api_endpoint = $STM_Config.blurtd_connection_client;
 
         if (
-            typeof window !== 'undefined' &&
-            localStorage.getItem('user_preferred_api_endpoint')
+            typeof window !== 'undefined'
+            && localStorage.getItem('user_preferred_api_endpoint')
         ) {
             preferred_api_endpoint = localStorage.getItem(
                 'user_preferred_api_endpoint'
@@ -62,32 +107,6 @@ class Settings extends Component {
         return entries;
     };
 
-    handleDefaultBlogPayoutChange = (event) => {
-        this.props.setUserPreferences({
-            ...this.props.user_preferences,
-            defaultBlogPayout: event.target.value,
-        });
-    };
-
-    handleDefaultCommentPayoutChange = (event) => {
-        this.props.setUserPreferences({
-            ...this.props.user_preferences,
-            defaultCommentPayout: event.target.value,
-        });
-    };
-
-    handleDefaultCommentsSortOrderChange = (event) => {
-        this.props.setUserPreferences({
-            ...this.props.user_preferences,
-            defaultCommentsSortOrder: event.target.value,
-        });
-    };
-
-    handleLanguageChange = (event) => {
-        const locale = event.target.value;
-        const userPreferences = { ...this.props.user_preferences, locale };
-        this.props.setUserPreferences(userPreferences);
-    };
     handlePreferredAPIEndpointChange = (event) => {
         if (typeof window !== 'undefined') {
             localStorage.setItem(
@@ -99,54 +118,57 @@ class Settings extends Component {
     };
 
     render() {
-        const { state, props } = this;
-
-        const { walletUrl, ignores, account, isOwnAccount, user_preferences } =
-            this.props;
+        const {
+            walletUrl, ignores, accountname, isOwnAccount, user_preferences,
+        } = this.props;
         const preferred_api_endpoint = this.getPreferredApiEndpoint();
 
         return (
             <div className="Settings">
                 {isOwnAccount && (
-                    <div className="row">
-                        <div className="small-12 columns">
-                            <p>
-                                To update your public profile, visit{' '}
-                                <a
-                                    href={
-                                        walletUrl +
-                                        '/@' +
-                                        account.name +
-                                        '/settings'
-                                    }
-                                >
-                                    blurtwallet.com
-                                </a>
-                                .
-                            </p>
+                    <div>
+                        <div className="row">
+                            <div className="small-12 columns">
+                                <p>
+                                    To update your public profile, visit
+                                    {' '}
+                                    <a
+                                        href={
+                                            walletUrl
+                                            + '/@'
+                                            + accountname
+                                            + '/settings'
+                                        }
+                                    >
+                                        Blurt Wallet
+                                    </a>
+                                    .
+                                </p>
+                            </div>
+                            <hr />
+                            <br />
                         </div>
+                        <h4>{tt('settings_jsx.preferences')}</h4>
                         <hr />
-                        <br />
-                        <div className="small-12 medium-4 large-4 columns">
-                            <h4>{tt('settings_jsx.preferences')}</h4>
-
-                            <label>
-                                {tt('g.choose_language')}
-                                <select
-                                    defaultValue={user_preferences.locale}
-                                    onChange={this.handleLanguageChange}
-                                >
-                                    <option value="en">English</option>
-                                    <option value="es">Spanish Español</option>
-                                    <option value="ru">Russian русский</option>
-                                    <option value="fr">French français</option>
-                                    <option value="it">Italian italiano</option>
-                                    <option value="ko">Korean 한국어</option>
-                                    <option value="ja">Japanese 日本語</option>
-                                    <option value="pl">Polish</option>
-                                    <option value="zh">Chinese 简体中文</option>
-                                </select>
-                            </label>
+                        <div className="row">
+                            <div className="small-12 medium-4 large-4 columns">
+                                <label>
+                                    {tt('g.choose_language')}
+                                    <select
+                                        defaultValue={user_preferences.locale}
+                                        onChange={this.handleLanguageChange}
+                                    >
+                                        <option value="en">English</option>
+                                        <option value="es">Spanish Español</option>
+                                        <option value="ru">Russian русский</option>
+                                        <option value="fr">French français</option>
+                                        <option value="it">Italian italiano</option>
+                                        <option value="ko">Korean 한국어</option>
+                                        <option value="ja">Japanese 日本語</option>
+                                        <option value="pl">Polish</option>
+                                        <option value="zh">Chinese 简体中文</option>
+                                    </select>
+                                </label>
                             <br />
                             <label>
                                 {tt('g.choose_preferred_endpoint')}
@@ -160,106 +182,145 @@ class Settings extends Component {
                                         {preferred_api_endpoint}
                                     </option>
 
-                                    {this.generateAPIEndpointOptions()}
+                                        {this.generateAPIEndpointOptions()}
+                                    </select>
+                                </label>
+                            </div>
+                            <div className="small-12 medium-4 large-4 columns">
+                                <label>
+                                    {tt(
+                                        'settings_jsx.not_safe_for_work_nsfw_content'
+                                    )}
+                                </label>
+                                <select
+                                    value={user_preferences.nsfwPref}
+                                    onChange={this.onNsfwPrefChange}
+                                >
+                                    <option value="hide">
+                                        {tt('settings_jsx.always_hide')}
+                                    </option>
+                                    <option value="warn">
+                                        {tt('settings_jsx.always_warn')}
+                                    </option>
+                                    <option value="show">
+                                        {tt('settings_jsx.always_show')}
+                                    </option>
                                 </select>
-                            </label>
-                            <br />
-                            <label>
-                                {tt(
-                                    'settings_jsx.not_safe_for_work_nsfw_content'
-                                )}
-                            </label>
-                            <select
-                                value={user_preferences.nsfwPref}
-                                onChange={this.onNsfwPrefChange}
-                            >
-                                <option value="hide">
-                                    {tt('settings_jsx.always_hide')}
-                                </option>
-                                <option value="warn">
-                                    {tt('settings_jsx.always_warn')}
-                                </option>
-                                <option value="show">
-                                    {tt('settings_jsx.always_show')}
-                                </option>
-                            </select>
-                            <br />
-
-                            <label>
-                                {tt('settings_jsx.choose_default_blog_payout')}
+                            </div>
+                            <div className="small-12 medium-4 large-4 columns">
+                                <label>{tt('settings_jsx.coal_list')}</label>
                                 <select
                                     defaultValue={
-                                        user_preferences.defaultBlogPayout ||
-                                        '75%'
+                                        user_preferences.coalStatus || 'enabled'
                                     }
-                                    onChange={
-                                        this.handleDefaultBlogPayoutChange
-                                    }
+                                    onChange={this.onCoalStatusChange}
                                 >
-                                    <option value="100%">
-                                        {tt('reply_editor.power_up_100')}
+                                    <option value="enabled">
+                                        {tt('settings_jsx.enable_coal')}
                                     </option>
-                                    <option value="75%">
-                                        {tt('reply_editor.power_up_25_75')}
-                                    </option>
-                                    <option value="0%">
-                                        {tt('reply_editor.decline_payout')}
+                                    <option value="disabled">
+                                        {tt('settings_jsx.disable_coal')}
                                     </option>
                                 </select>
-                            </label>
-                            <br />
 
-                            <label>
-                                {tt(
-                                    'settings_jsx.choose_default_comment_payout'
-                                )}
+                            </div>
+                            <div className="small-12 medium-4 large-4 columns">
+
+                                <label>{tt('settings_jsx.reblog_toggle')}</label>
                                 <select
                                     defaultValue={
-                                        user_preferences.defaultCommentPayout ||
-                                        '75%'
+                                        user_preferences.reblogs || 'enabled'
                                     }
-                                    onChange={
-                                        this.handleDefaultCommentPayoutChange
-                                    }
+                                    onChange={this.onReblogPrefChange}
                                 >
-                                    <option value="100%">
-                                        {tt('reply_editor.power_up_100')}
+                                    <option value="enabled">
+                                        {tt('settings_jsx.show_reblogs')}
                                     </option>
-                                    <option value="75%">
-                                        {tt('reply_editor.power_up_25_75')}
-                                    </option>
-                                    <option value="0%">
-                                        {tt('reply_editor.decline_payout')}
+                                    <option value="disabled">
+                                        {tt('settings_jsx.hide_reblogs')}
                                     </option>
                                 </select>
-                            </label>
-                            <br />
 
-                            <label>
-                                {tt('settings_jsx.default_comments_order')}
-                                <select
-                                    defaultValue={
-                                        user_preferences.defaultCommentsSortOrder ||
-                                        'new'
-                                    }
-                                    onChange={
-                                        this
-                                            .handleDefaultCommentsSortOrderChange
-                                    }
-                                >
-                                    <option value="new">
-                                        {tt('settings_jsx.sort_by_age')}
-                                    </option>
-                                    <option value="trending">
-                                        {tt('settings_jsx.sort_by_trending')}
-                                    </option>
-                                    <option value="votes">
-                                        {tt('settings_jsx.sort_by_votes')}
-                                    </option>
-                                </select>
-                            </label>
+                            </div>
 
-                            <br />
+                            <div className="small-12 medium-4 large-4 columns">
+
+                                <label>
+                                    {tt('settings_jsx.choose_default_blog_payout')}
+                                    <select
+                                        defaultValue={
+                                            user_preferences.defaultBlogPayout
+                                            || '75%'
+                                        }
+                                        onChange={
+                                            this.handleDefaultBlogPayoutChange
+                                        }
+                                    >
+                                        <option value="100%">
+                                            {tt('reply_editor.power_up_100')}
+                                        </option>
+                                        <option value="75%">
+                                            {tt('reply_editor.power_up_25_75')}
+                                        </option>
+                                        <option value="0%">
+                                            {tt('reply_editor.decline_payout')}
+                                        </option>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <div className="small-12 medium-4 large-4 columns">
+                                <label>
+                                    {tt(
+                                        'settings_jsx.choose_default_comment_payout'
+                                    )}
+                                    <select
+                                        defaultValue={
+                                            user_preferences.defaultCommentPayout
+                                            || '75%'
+                                        }
+                                        onChange={
+                                            this.handleDefaultCommentPayoutChange
+                                        }
+                                    >
+                                        <option value="100%">
+                                            {tt('reply_editor.power_up_100')}
+                                        </option>
+                                        <option value="75%">
+                                            {tt('reply_editor.power_up_25_75')}
+                                        </option>
+                                        <option value="0%">
+                                            {tt('reply_editor.decline_payout')}
+                                        </option>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <div className="small-12 medium-4 large-4 columns">
+                                <label>
+                                    {tt('settings_jsx.default_comments_order')}
+                                    <select
+                                        defaultValue={
+                                            user_preferences.defaultCommentsSortOrder
+                                            || 'new'
+                                        }
+                                        onChange={
+                                            this
+                                                .handleDefaultCommentsSortOrderChange
+                                        }
+                                    >
+                                        <option value="new">
+                                            {tt('settings_jsx.sort_by_age')}
+                                        </option>
+                                        <option value="trending">
+                                            {tt('settings_jsx.sort_by_trending')}
+                                        </option>
+                                        <option value="votes">
+                                            {tt('settings_jsx.sort_by_votes')}
+                                        </option>
+                                    </select>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -284,11 +345,9 @@ export default connect(
     (state, ownProps) => {
         const { accountname } = ownProps.routeParams;
 
-        const isOwnAccount =
-            state.user.getIn(['current', 'username'], '') == accountname;
-        const ignores =
-            isOwnAccount &&
-            state.global.getIn([
+        const isOwnAccount = state.user.getIn(['current', 'username'], '') == accountname;
+        const ignores = isOwnAccount
+            && state.global.getIn([
                 'follow',
                 'getFollowingAsync',
                 accountname,
@@ -299,7 +358,6 @@ export default connect(
             accountname,
             isOwnAccount,
             ignores,
-            account: state.global.getIn(['accounts', accountname]).toJS(),
             user_preferences: state.app.get('user_preferences').toJS(),
             walletUrl: state.app.get('walletUrl'),
             ...ownProps,

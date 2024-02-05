@@ -1,11 +1,12 @@
-import { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import tt from 'counterpart';
 import classnames from 'classnames';
 import shouldComponentUpdate from 'app/utils/shouldComponentUpdate';
-import { looksPhishy } from 'app/utils/Phishing';
+import { looksPhishyDomain } from 'app/utils/Phishing';
+import { connect } from 'react-redux';
 
-export default class SanitizedLink extends Component {
+class SanitizedLink extends React.Component {
     static propTypes = {
         url: PropTypes.string,
         text: PropTypes.string,
@@ -13,10 +14,10 @@ export default class SanitizedLink extends Component {
 
     constructor() {
         super();
-        this.shouldComponentUpdate = shouldComponentUpdate(
-            this,
-            'SanitizedLink'
-        );
+        // this.shouldComponentUpdate = shouldComponentUpdate(
+        //     this,
+        //     'SanitizedLink'
+        // );
         this.state = {
             revealPhishyLink: false,
         };
@@ -28,9 +29,9 @@ export default class SanitizedLink extends Component {
     };
 
     render() {
-        const { text, url } = this.props;
+        const { text, url, phishy_domains } = this.props;
 
-        const isPhishy = looksPhishy(url);
+        const isPhishy = looksPhishyDomain(phishy_domains, url);
 
         const classes = classnames({
             SanitizedLink: true,
@@ -77,3 +78,14 @@ export default class SanitizedLink extends Component {
         );
     }
 }
+
+export default connect((state, props) => {
+    const phishy_domains =
+        state.global.getIn(['phishy_domains']) == undefined
+            ? []
+            : state.global.getIn(['phishy_domains']);
+    return {
+        ...props,
+        phishy_domains,
+    };
+})(SanitizedLink);
