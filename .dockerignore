@@ -2,8 +2,3 @@ node_modules
 tmp
 lib
 dist
-
-./node_modules
-./tmp
-./dist
-./lib
