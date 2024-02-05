@@ -20,7 +20,7 @@
   "server_session_secret": "HusUOYIruoK1yeYR/4QRuybQZP1UpkNaRkegTEN9u5w=",
   "session_cookie_key": "blurt-dev",
   "session_key": "blurt_session_key",
-  "site_domain": "blurt.blog",
+  "site_domain": "blurt.alloyxuast.co.uk",
   "telesign": {
     "customer_id": false,
     "rest_api_key": false
