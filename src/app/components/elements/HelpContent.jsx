@@ -1,0 +1,158 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+import MarkdownViewer from 'app/components/cards/MarkdownViewer';
+import Icon from 'app/components/elements/Icon';
+import { renderToString } from 'react-dom/server';
+
+if (!process.env.BROWSER) {
+    const cache = {};
+    // please note we don't need to define require.context for client side rendering because it's defined by webpack
+    const path = require('path');
+    const fs = require('fs');
+    function getFolderContents(folder, recursive) {
+        return fs.readdirSync(folder).reduce((list, file) => {
+            const name = path.resolve(folder, file);
+            const isDir = fs.statSync(name).isDirectory();
+            return list.concat(
+                isDir && recursive ? getFolderContents(name, recursive) : [name]
+            );
+        }, []);
+    }
+    function requireContext(folder, recursive, pattern) {
+        const normalizedFolder = path.resolve(
+            path.dirname(module.filename),
+            folder
+        );
+        // eslint-disable-next-line no-multi-assign
+        const folderContents = (cache[folder] = cache[folder]
+            ? cache[folder]
+            : getFolderContents(normalizedFolder, recursive).filter((item) => {
+                  if (item === module.filename) return false;
+                  return pattern.test(item);
+              }));
+
+        const keys = function () {
+            return folderContents;
+        };
+        const returnContext = function returnContext(item) {
+            return (cache[item] = cache[item]
+                ? cache[item]
+                : fs.readFileSync(item, 'utf8'));
+        };
+        returnContext.keys = keys;
+        return returnContext;
+    }
+    require.context = requireContext;
+}
+
+const req = require.context('../../help', true, /\.md/);
+const HelpData = {};
+
+function split_into_sections(str) {
+    let sections = str.split(/\[#\s?(.+?)\s?\]/);
+    if (sections.length === 1) return sections[0];
+    if (sections[0].length < 4) sections.splice(0, 1);
+    sections = sections.reduce((result, n) => {
+        let last = result.length > 0 ? result[result.length - 1] : null;
+        if (!last || last.length === 2) {
+            last = [n];
+            result.push(last);
+        } else last.push(n);
+        return result;
+    }, []);
+    return sections.reduce((result, n) => {
+        result[n[0]] = n[1];
+        return result;
+    }, {});
+}
+
+export default class HelpContent extends React.Component {
+    // eslint-disable-next-line react/static-property-placement
+    static propTypes = {
+        path: PropTypes.string.isRequired,
+        section: PropTypes.string,
+        title: PropTypes.string,
+    };
+
+    constructor(props) {
+        super(props);
+        this.locale = 'en';
+    }
+
+    componentWillMount() {
+        const md_file_path_regexp = new RegExp(`/${this.locale}/(.+).md$`);
+        req.keys()
+            .filter((a) => {
+                return a.indexOf(`/${this.locale}/`) !== -1;
+            })
+            .forEach((filename) => {
+                const res = filename.match(md_file_path_regexp);
+                const key = res[1];
+                let help_locale = HelpData[this.locale];
+                // eslint-disable-next-line no-multi-assign
+                if (!help_locale) HelpData[this.locale] = help_locale = {};
+                const content = req(filename);
+                help_locale[key] = split_into_sections(content);
+            });
+    }
+
+    setVars(str) {
+        return str.replace(/(\{.+?\})/gi, (match, text) => {
+            const key = text.substr(1, text.length - 2);
+            const value =
+                this.props[key] !== undefined ? this.props[key] : text;
+            return value;
+        });
+    }
+
+    render() {
+        const { path } = this.props;
+        if (!HelpData[this.locale]) {
+            console.error(`missing locale '${this.locale}' help files`);
+            return null;
+        }
+        let value = HelpData[this.locale][path];
+        if (!value && this.locale !== 'en') {
+            console.warn(
+                `missing path '${path}' for locale '${this.locale}' help files, rolling back to 'en'`
+            );
+            value = HelpData.en[path];
+        }
+        if (!value) {
+            console.error(
+                `help file not found '${path}' for locale '${this.locale}'`
+            );
+            return null;
+        }
+        if (this.props.section) value = value[this.props.section];
+        if (!value) {
+            console.error(
+                `help section not found ${this.props.path}#${this.props.section}`
+            );
+            return null;
+        }
+        value = this.setVars(value);
+        value = value.replace(
+            /<Icon name="([A-Za-z0-9_-]+)" \/>/gi,
+            (match, name) => {
+                return renderToString(<Icon name={name} />);
+            }
+        );
+        let title = null;
+        if (this.props.title) {
+            title = <h1>{this.props.title}</h1>;
+        }
+
+        return (
+            <div>
+                {title}
+                <MarkdownViewer
+                    className="HelpContent"
+                    text={value}
+                    allowDangerousHTML
+                    breaks={false}
+                />
+            </div>
+        );
+    }
+}

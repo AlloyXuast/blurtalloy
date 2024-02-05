@@ -1,0 +1,35 @@
+.CommunityRoles {
+    table tbody {background: transparent;}
+    table tbody tr {background: transparent !important;}
+}
+
+.community-user--role {
+  cursor: pointer;
+}
+
+a.community--subscribe.button.primary {
+    background-color: $color-black;
+}
+
+a.community--subscribe.button.primary:hover {
+    background-color: $color-orange-dark;
+    &.hollow {
+        color: $color-orange-dark;
+        border: 1px solid #fb5b1b;
+        span {display: none}
+        &::after {
+            content: 'Leave';
+        }
+    }
+}
+
+a.community--subscribe.button.primary.hollow {
+    background-color: transparent;
+    color: $color-black;
+    border: 1px solid #000;
+}
+
+.theme-dark a.community--subscribe.button.primary.hollow {
+    color: $color-white;
+    border: 1px solid #fff;
+}
