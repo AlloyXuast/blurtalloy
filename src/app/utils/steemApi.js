@@ -75,7 +75,7 @@ export async function getStateAsync(url) {
             raw.blacklist = map;
         });
 
-    const promotedMembersListURL = 'https://api.chisdealhd.co.uk/v2/crypto/api/blurt/ranks';
+    const promotedMembersListURL = 'https://api.nekosunevr.co.uk/v4/apps/ranks/blurt';
 
     await axios
         .get(promotedMembersListURL, {
