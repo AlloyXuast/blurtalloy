@@ -14,6 +14,7 @@ import tt from 'counterpart';
 import Overlay from 'react-overlays/lib/Overlay';
 import { findDOMNode } from 'react-dom';
 import UserTitle from 'app/components/elements/UserTitle';
+import PromotedMember from '../PromotedMember';
 
 import Blacklist from '../Blacklist';
 
@@ -152,6 +153,7 @@ class Author extends React.Component {
                     </strong>{' '}
                     {/* <Reputation value={authorRepLog10} /> */}
                     <Blacklist author={author} />
+                    <PromotedMember author={author} />
                     {showAffiliation && AffiliationMap[author] ? (
                         <span className="affiliation">
                             {tt('g.affiliation_' + AffiliationMap[author])}

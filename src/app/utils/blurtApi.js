@@ -232,6 +232,27 @@ export async function getStateAsync(url, observer, ssr = false) {
     state.props.price_per_blurt = response.price
     state.blacklist = response.blacklist
 
+    const promotedMembersListURL = 'https://api.nekosunevr.co.uk/v4/apps/ranks/blurt';
+
+    await axios
+        .get(promotedMembersListURL, {
+            timeout: 3000
+        })
+        .then((response) => {
+            const map = new Map();
+            if (response.status === 200) {
+                // eslint-disable-next-line no-restricted-syntax
+                for (const data of response.data) {
+                    map.set(data.name, data);
+                }
+                state.promoted_members = map;
+            }
+        })
+        .catch((error) => {
+            console.warn(error);
+        });
+
+
     const rewardFund = await getRewardFund();
     if (rewardFund) {
         state.reward_fund = rewardFund;
