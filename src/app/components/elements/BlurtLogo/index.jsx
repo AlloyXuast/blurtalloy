@@ -5,7 +5,7 @@ function BlurtLogo() {
         <span className="logo">
             <img
                 alt="Logo"
-                src="/images/blurt-one-logo.webp"
+                src="/images/blurt-one-logo.gif"
                 width="150"
                 height="40"
             />
