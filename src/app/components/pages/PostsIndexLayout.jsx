@@ -54,7 +54,7 @@ class PostsIndexLayout extends React.Component {
     componentDidUpdate(prevProps) {
         const { subscriptions, getSubscriptions, username } = this.props;
         if (!subscriptions && username && username !== prevProps.username) getSubscriptions(username);
-    }    
+    }
 
     onShowSpam = () => {
         this.setState({ showSpam: !this.state.showSpam });
@@ -62,14 +62,14 @@ class PostsIndexLayout extends React.Component {
 
     render() {
         const {
-            topics, 
-            subscriptions, 
-            community, 
-            username, 
-            blogmode, 
-            isBrowser, 
-            children, 
-            maybeLoggedIn, 
+            topics,
+            subscriptions,
+            community,
+            username,
+            blogmode,
+            isBrowser,
+            children,
+            maybeLoggedIn,
             bandwidthKbytesFee,
             operationFlatFee,
             pricePerBlurt,
@@ -130,9 +130,9 @@ class PostsIndexLayout extends React.Component {
                     {!community && <Notices notices={notices} />}
                     <div className="sidebar-ad">
                         <iframe
-                            data-aa="2059755"
+                            data-aa="2309669"
                             title="A-ads bitcoin ads"
-                            src="//acceptable.a-ads.com/2059755"
+                            src="//acceptable.a-ads.com/2309669"
                             style={{
                                 width: '100%',
                                 border: '0px',
@@ -146,7 +146,7 @@ class PostsIndexLayout extends React.Component {
                             <small>
                                 <a
                                     rel="external nofollow"
-                                    href="https://a-ads.com/?partner=2059755"
+                                    href="https://a-ads.com/?partner=2309669"
                                 >
                                     Join A-Ads Network
                                 </a>
@@ -207,9 +207,9 @@ class PostsIndexLayout extends React.Component {
                     </small>
                     <div className="sidebar-ad">
                         <iframe
-                            data-aa="2059755"
+                            data-aa="2309669"
                             title="A-ads bitcoin ads"
-                            src="//acceptable.a-ads.com/2059755"
+                            src="//acceptable.a-ads.com/2309669"
                             style={{
                                 width: '100%',
                                 border: '0px',
@@ -223,7 +223,7 @@ class PostsIndexLayout extends React.Component {
                             <small>
                                 <a
                                     rel="external nofollow"
-                                    href="https://a-ads.com/?partner=2059755"
+                                    href="https://a-ads.com/?partner=2309669"
                                 >
                                     Join A-Ads Network
                                 </a>

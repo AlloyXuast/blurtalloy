@@ -410,9 +410,9 @@ class PostsList extends React.Component {
                             </div> */}
                             {/* <div className="articles__content-block--ad">
                                 <iframe
-                                    data-aa="2059755"
+                                    data-aa="2309669"
                                     title="A-ads bitcoin ads"
-                                    src="//acceptable.a-ads.com/2059755"
+                                    src="//acceptable.a-ads.com/2309669"
                                     style={{
                                         width: '100%',
                                         border: '0px',
@@ -426,7 +426,7 @@ class PostsList extends React.Component {
                                     <small>
                                         <a
                                             rel="external nofollow"
-                                            href="https://a-ads.com/?partner=2059755"
+                                            href="https://a-ads.com/?partner=2309669"
                                         >
                                             Join A-Ads Network
                                         </a>
